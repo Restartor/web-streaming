@@ -27,7 +27,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := h.service.Login(r.Context(), req.Email, req.Password); err != nil {
-		utils.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": err.Error()})
+		utils.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid credentials"})
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, map[string]bool{"success": true})

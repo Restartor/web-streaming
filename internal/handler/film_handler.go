@@ -18,7 +18,7 @@ func NewFilmHandler(service *service.FilmService) *FilmHandler {
 func (h *FilmHandler) List(w http.ResponseWriter, r *http.Request) {
 	films, err := h.service.List(r.Context())
 	if err != nil {
-		utils.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		utils.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, films)

@@ -21,7 +21,7 @@ func NewAuthService(repository domain.UserRepository) *AuthService {
 func (s *AuthService) Login(ctx context.Context, email, password string) (domain.User, error) {
 	user, err := s.repository.FindByEmail(ctx, email)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, ErrInvalidCredentials
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		return domain.User{}, ErrInvalidCredentials
