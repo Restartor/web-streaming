@@ -3,9 +3,9 @@ package domain
 import "context"
 
 type User struct {
-	ID       int64  `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"-"`
+	ID           int64  `json:"id"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"-"`
 }
 
 type UserRepository interface {

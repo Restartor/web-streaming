@@ -26,7 +26,11 @@ func (s *userRepoStub) FindByEmail(_ context.Context, _ string) (domain.User, er
 
 func TestAuthServiceLogin(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		svc := NewAuthService(&userRepoStub{user: domain.User{Email: "demo@example.com", Password: "secret"}})
+		hash, err := HashPassword("secret")
+		if err != nil {
+			t.Fatalf("failed to hash password: %v", err)
+		}
+		svc := NewAuthService(&userRepoStub{user: domain.User{Email: "demo@example.com", PasswordHash: hash}})
 		user, err := svc.Login(context.Background(), "demo@example.com", "secret")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -37,8 +41,12 @@ func TestAuthServiceLogin(t *testing.T) {
 	})
 
 	t.Run("invalid password", func(t *testing.T) {
-		svc := NewAuthService(&userRepoStub{user: domain.User{Email: "demo@example.com", Password: "secret"}})
-		_, err := svc.Login(context.Background(), "demo@example.com", "wrong")
+		hash, err := HashPassword("secret")
+		if err != nil {
+			t.Fatalf("failed to hash password: %v", err)
+		}
+		svc := NewAuthService(&userRepoStub{user: domain.User{Email: "demo@example.com", PasswordHash: hash}})
+		_, err = svc.Login(context.Background(), "demo@example.com", "wrong")
 		if !errors.Is(err, ErrInvalidCredentials) {
 			t.Fatalf("expected ErrInvalidCredentials, got: %v", err)
 		}
