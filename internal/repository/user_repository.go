@@ -17,12 +17,15 @@ func (r *userRepository) FindByID(id uint) (*domain.User, error) {
 
 }
 
-func (r *userRepository) FindByEmail() {
-
+func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
+	var user domain.User
+	err := r.db.Where("email = ?", email).First(&user).Error
+	return &user, err
 }
 
-func (r *userRepository) Create() {
-
+func (r *userRepository) Create(*domain.User) error {
+	var user domain.User
+	return r.db.Create(user).Error
 }
 
 func NewUserRepository(db *gorm.DB) domain.UserRepository {
