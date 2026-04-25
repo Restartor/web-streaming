@@ -60,3 +60,7 @@ func (r *UserService) UserLogin(email, password string) (string, error) {
 
 	return tokenString, nil
 }
+
+func NewUserService(repo domain.UserRepository) domain.UserService {
+	return &UserService{repo: repo}
+}

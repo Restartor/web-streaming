@@ -51,3 +51,7 @@ func (r *UserHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 
 }
+
+func NewUserHandler(service domain.UserService) *UserHandler {
+	return &UserHandler{service: service}
+}
