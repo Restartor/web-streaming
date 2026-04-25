@@ -23,8 +23,7 @@ func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
 	return &user, err
 }
 
-func (r *userRepository) Create(*domain.User) error {
-	var user domain.User
+func (r *userRepository) Create(user *domain.User) error {
 	return r.db.Create(user).Error
 }
 
