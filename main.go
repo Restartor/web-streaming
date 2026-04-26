@@ -28,10 +28,14 @@ func main() {
 	userService := service.NewUserService(userRepository)
 	userHandler := handler.NewUserHandler(userService)
 
+	filmRepository := repository.NewFilmRepository(config.DB)
+	filmService := service.NewFilmService(filmRepository)
+	filmHandler := handler.NewFilmHandler(filmService)
+
 	// routes
 	router := gin.Default()
 
-	routes.SetupRoutes(router, userHandler)
+	routes.SetupRoutes(router, userHandler, filmHandler)
 
 	router.Run(":01010")
 }
