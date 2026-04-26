@@ -8,6 +8,7 @@ import (
 	"web-streaming/internal/service"
 	"web-streaming/routes"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -34,6 +35,12 @@ func main() {
 
 	// routes
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	}))
 
 	routes.SetupRoutes(router, userHandler, filmHandler)
 
