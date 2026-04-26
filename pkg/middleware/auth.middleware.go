@@ -21,7 +21,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 		// format : bearer <token>, harus split bearer
-		tokenString := strings.Split(authHeader, "")
+		tokenString := strings.Split(authHeader, " ")
 
 		if len(tokenString) != 2 {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "format token salah/error"})

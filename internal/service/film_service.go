@@ -10,7 +10,7 @@ func (r *FilmService) GetAllFilms() ([]domain.Filem, error) {
 	return r.repo.FindAll()
 }
 
-func (r *FilmService) GetFilmByTitle(title string) (*domain.Filem, error) {
+func (r *FilmService) GetFilmByTitle(title string) ([]domain.Filem, error) {
 	return r.repo.FindByTitle(title)
 }
 

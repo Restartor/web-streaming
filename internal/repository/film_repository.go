@@ -16,12 +16,12 @@ func (r *FilmRepository) FindAll() ([]domain.Filem, error) {
 	return filems, err
 }
 
-func (r *FilmRepository) FindByTitle(title string) (*domain.Filem, error) {
-	var filem domain.Filem
+func (r *FilmRepository) FindByTitle(title string) ([]domain.Filem, error) {
+	var filems []domain.Filem
 
-	err := r.db.Where("title = ?", title).First(&filem).Error
+	err := r.db.Where("title ILIKE ?", "%"+title+"%").Find(&filems).Error
 
-	return &filem, err
+	return filems, err
 
 }
 
