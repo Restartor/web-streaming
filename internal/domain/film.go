@@ -13,16 +13,16 @@ type Filem struct {
 
 type FilmRepository interface {
 	FindAll() ([]Filem, error)
-	FindByID(id uint) (*Filem, error)
-	Create(film *Filem) error
-	Update(film *Filem) error
+	FindByTitle(title string) (*Filem, error)
+	Create(filem *Filem) error
+	Update(filem *Filem) error
 	Delete(id uint) error
 }
 
 type FilmService interface {
 	GetAllFilms() ([]Filem, error)
-	GetFilmByID(id uint) (*Filem, error)
-	CreateFilm(film *Filem) error
-	UpdateFilm(film *Filem) error
+	GetFilmByTitle(title string) (*Filem, error)
+	CreateFilm(filem *Filem) error
+	UpdateFilm(filem *Filem) error
 	DeleteFilm(id uint) error
 }
