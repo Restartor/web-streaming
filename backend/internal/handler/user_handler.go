@@ -11,26 +11,26 @@ type UserHandler struct {
 	service domain.UserService
 }
 
+// internal/handler/user_handler.go
 func (r *UserHandler) Register(c *gin.Context) {
-
-	var user domain.User
-
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Input Tiidak Valid"})
+	var input domain.RegisterInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
+	}
+
+	user := domain.User{
+		Username: input.Username,
+		Email:    input.Email,
+		Password: input.Password,
 	}
 
 	if err := r.service.UserRegister(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Register Success!",
-	})
-
+	c.JSON(http.StatusCreated, gin.H{"message": "Register Success!"})
 }
 
 func (r *UserHandler) Login(c *gin.Context) {
