@@ -11,7 +11,6 @@ type UserHandler struct {
 	service domain.UserService
 }
 
-// internal/handler/user_handler.go
 func (r *UserHandler) Register(c *gin.Context) {
 	var input domain.RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -34,7 +33,7 @@ func (r *UserHandler) Register(c *gin.Context) {
 }
 
 func (r *UserHandler) Login(c *gin.Context) {
-	var user domain.User
+	var user domain.LoginInput
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
