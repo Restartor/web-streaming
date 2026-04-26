@@ -1,6 +1,7 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import LoginPage from "./pages/LoginPage"
+import RegisterPage from "./pages/RegisterPage"
 
 function App() {
   return (
@@ -8,7 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<div>Home</div>} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<div>Register</div>} />
+        <Route path="/register" element={<RegisterPage />} />
       </Routes>
     </BrowserRouter>
   )
