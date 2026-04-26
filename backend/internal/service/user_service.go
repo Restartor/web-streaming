@@ -31,14 +31,14 @@ func (r *UserService) UserLogin(email, password string) (string, error) {
 
 	user, err := r.repo.FindByEmail(email)
 	if err != nil {
-		return "", errors.New("email not found!")
+		return "", errors.New("email atau password salah")
 	}
 
 	// bandingkan dengan password
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", errors.New("password yang dimasukkan salah!")
+		return "", errors.New("email atau password salah")
 	}
 
 	// generate JWT TOKEN - return tokenstring, nil sama kyk ecommerce repo

@@ -11,7 +11,7 @@ func AdminOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role, exist := c.Get("role")
 		if !exist || role != "admin" {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized entry..."})
+			c.JSON(http.StatusForbidden, gin.H{"message": "unauthorized entry..."})
 			c.Abort()
 			return
 		}
