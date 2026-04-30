@@ -1,10 +1,10 @@
 package service
 
 import (
+	"backend/internal/domain"
 	"errors"
 	"os"
 	"time"
-	"web-streaming/internal/domain"
 
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -23,6 +23,15 @@ func (r *UserService) UserRegister(user *domain.User) error {
 		return err
 	}
 	user.Password = string(hashedPassword)
+
+	existing, err := r.repo.FindByEmail(user.Email)
+	if existing != nil {
+		return errors.New("email sudah digunakan")
+	}
+	existinguser, err := r.repo.FindByUser(user.Username)
+	if existinguser != nil {
+		return errors.New("username sudah digunakan")
+	}
 
 	return r.repo.Create(user)
 }

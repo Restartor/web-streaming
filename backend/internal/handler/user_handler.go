@@ -1,8 +1,9 @@
 package handler
 
 import (
+	"backend/internal/domain"
+	"fmt"
 	"net/http"
-	"web-streaming/internal/domain"
 
 	"github.com/gin-gonic/gin"
 )
@@ -53,4 +54,8 @@ func (r *UserHandler) Login(c *gin.Context) {
 
 func NewUserHandler(service domain.UserService) *UserHandler {
 	return &UserHandler{service: service}
+}
+
+func formatValidationError(err error) string {
+	return fmt.Sprintf("Validasi gagal: %s", err.Error())
 }

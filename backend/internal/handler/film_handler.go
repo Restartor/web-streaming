@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"backend/internal/domain"
 	"net/http"
 	"strconv"
-	"web-streaming/internal/domain"
 
 	"github.com/gin-gonic/gin"
 )

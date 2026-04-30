@@ -1,6 +1,6 @@
 package service
 
-import "web-streaming/internal/domain"
+import "backend/internal/domain"
 
 type FilmService struct {
 	repo domain.FilmRepository

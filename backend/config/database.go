@@ -1,10 +1,10 @@
 package config
 
 import (
+	"backend/internal/domain"
 	"fmt"
 	"log"
 	"os"
-	"web-streaming/internal/domain"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

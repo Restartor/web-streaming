@@ -1,12 +1,12 @@
 package main
 
 import (
+	"backend/config"
+	"backend/internal/handler"
+	"backend/internal/repository"
+	"backend/internal/service"
+	"backend/routes"
 	"log"
-	"web-streaming/config"
-	"web-streaming/internal/handler"
-	"web-streaming/internal/repository"
-	"web-streaming/internal/service"
-	"web-streaming/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"web-streaming/internal/handler"
-	"web-streaming/pkg"
-	"web-streaming/pkg/middleware"
+	"backend/internal/handler"
+	"backend/pkg"
+	"backend/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )

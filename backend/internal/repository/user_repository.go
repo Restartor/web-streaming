@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"web-streaming/internal/domain"
+	"backend/internal/domain"
 
 	"gorm.io/gorm"
 )
@@ -20,6 +20,11 @@ func (r *UserRepository) FindByID(id uint) (*domain.User, error) {
 func (r *UserRepository) FindByEmail(email string) (*domain.User, error) {
 	var user domain.User
 	err := r.db.Where("email = ?", email).First(&user).Error
+	return &user, err
+}
+func (r *UserRepository) FindByUser(username string) (*domain.User, error) {
+	var user domain.User
+	err := r.db.Where("username = ?", username).First(&user).Error
 	return &user, err
 }
 

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"web-streaming/internal/domain"
+	"backend/internal/domain"
 
 	"gorm.io/gorm"
 )

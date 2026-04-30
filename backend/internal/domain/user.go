@@ -25,6 +25,7 @@ type LoginInput struct {
 type UserRepository interface {
 	FindByID(id uint) (*User, error)
 	FindByEmail(email string) (*User, error)
+	FindByUser(username string) (*User, error)
 	Create(user *User) error
 }
 
