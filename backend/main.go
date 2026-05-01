@@ -7,6 +7,7 @@ import (
 	"backend/internal/service"
 	"backend/routes"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -22,6 +23,10 @@ func main() {
 	}
 
 	config.DatabaseConnection()
+
+	if os.Getenv("JWT_SECRET") == "" {
+		log.Fatal("error", "jwt secret is not yet defined")
+	}
 
 	// masukkan repo,handler,service untuk menggabungkan mereka bertiga
 	userRepository := repository.NewUserRepository(config.DB)
