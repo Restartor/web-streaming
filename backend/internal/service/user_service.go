@@ -18,20 +18,19 @@ func (r *UserService) UserRegister(user *domain.User) error {
 
 	user.Role = "user"
 
+	if _, err := r.repo.FindByEmail(user.Email); err == nil {
+		return errors.New("email sudah digunakan")
+	}
+
+	if _, err := r.repo.FindByUser(user.Username); err == nil {
+		return errors.New("username sudah digunakan")
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 	user.Password = string(hashedPassword)
-
-	existing, err := r.repo.FindByEmail(user.Email)
-	if existing != nil {
-		return errors.New("email sudah digunakan")
-	}
-	existinguser, err := r.repo.FindByUser(user.Username)
-	if existinguser != nil {
-		return errors.New("username sudah digunakan")
-	}
 
 	return r.repo.Create(user)
 }
