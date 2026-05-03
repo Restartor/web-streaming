@@ -5,8 +5,8 @@ import (
 	"backend/internal/handler"
 	"backend/internal/repository"
 	"backend/internal/service"
+	"backend/pkg/logger"
 	"backend/routes"
-	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -19,13 +19,14 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("error", err)
+		logger.Log.Fatal().Err(err).Msg("Gagal mendapatkan env")
 	}
 
+	logger.Init()
 	config.DatabaseConnection()
 
 	if os.Getenv("JWT_SECRET") == "" {
-		log.Fatal("error", "jwt secret is not yet defined")
+		logger.Log.Fatal().Err(err).Msg("Jwt_secret belum di set!!")
 	}
 
 	// masukkan repo,handler,service untuk menggabungkan mereka bertiga

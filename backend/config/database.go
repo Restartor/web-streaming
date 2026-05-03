@@ -2,8 +2,8 @@ package config
 
 import (
 	"backend/internal/domain"
+	"backend/pkg/logger"
 	"fmt"
-	"log"
 	"os"
 
 	"gorm.io/driver/postgres"
@@ -24,7 +24,7 @@ func DatabaseConnection() {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
-		log.Fatal("gagal koneksi database \n", err)
+		logger.Log.Fatal().Err(err).Msg("gagal koneksi database!")
 	}
 
 	err = db.AutoMigrate(
@@ -33,11 +33,11 @@ func DatabaseConnection() {
 	)
 
 	if err != nil {
-		log.Fatal("migrate gagal", err)
+		logger.Log.Fatal().Err(err).Msg("gagal migrasi domain!")
 	}
 
 	DB = db
 
-	fmt.Println("Koneksi ke database success!")
+	logger.Log.Info().Msg("koneksi database success!, silahkan lanjut")
 
 }
