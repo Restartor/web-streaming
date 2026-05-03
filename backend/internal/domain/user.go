@@ -3,12 +3,12 @@ package domain
 import "time"
 
 type User struct {
-	ID        uint
-	Username  string
-	Email     string
-	Password  string
-	Role      string
-	CreatedAt time.Time
+	ID        uint      `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	Password  string    `json:"-"`
+	Role      string    `json:"role"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type RegisterInput struct {

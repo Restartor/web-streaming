@@ -1,14 +1,14 @@
 package domain
 
 type Filem struct {
-	ID          uint
-	Title       string
-	Description string
-	Genre       string
-	Year        int
-	PosterURL   string
-	Rating      float64
-	VideoURL    string
+	ID          uint    `gorm:"primaryKey"`
+	Title       string  `gorm:"not null"`
+	Description string  `gorm:"not null"`
+	Genre       string  `gorm:"not null"`
+	Year        int     `gorm:"not null"`
+	PosterURL   string  `gorm:"not null"`
+	Rating      float64 `gorm:"not null"; default:0`
+	VideoURL    string  `gorm:"not null"`
 }
 
 type FilmRepository interface {

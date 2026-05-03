@@ -2,7 +2,6 @@ package handler
 
 import (
 	"backend/internal/domain"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -39,6 +38,7 @@ func (r *UserHandler) Login(c *gin.Context) {
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Wrong User/Password"})
+		return
 	}
 
 	token, err := r.service.UserLogin(user.Email, user.Password)
@@ -54,8 +54,4 @@ func (r *UserHandler) Login(c *gin.Context) {
 
 func NewUserHandler(service domain.UserService) *UserHandler {
 	return &UserHandler{service: service}
-}
-
-func formatValidationError(err error) string {
-	return fmt.Sprintf("Validasi gagal: %s", err.Error())
 }
