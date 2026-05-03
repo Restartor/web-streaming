@@ -7,7 +7,7 @@ type Filem struct {
 	Genre       string  `gorm:"not null"`
 	Year        int     `gorm:"not null"`
 	PosterURL   string  `gorm:"not null"`
-	Rating      float64 `gorm:"not null"; default:0`
+	Rating      float64 `gorm:"not null; default:0"`
 	VideoURL    string  `gorm:"not null"`
 }
 
