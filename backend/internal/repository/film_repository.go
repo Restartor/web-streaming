@@ -22,7 +22,6 @@ func (r *FilmRepository) FindByTitle(title string) ([]domain.Filem, error) {
 	err := r.db.Where("title ILIKE ?", "%"+title+"%").Find(&filems).Error
 
 	return filems, err
-
 }
 
 func (r *FilmRepository) Create(filem *domain.Filem) error {

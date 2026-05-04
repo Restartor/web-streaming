@@ -26,7 +26,7 @@ func (r *UserHandler) Register(c *gin.Context) {
 	}
 
 	if err := r.service.UserRegister(&user); err != nil {
-		response.Error(c, http.StatusInternalServerError, "Failed to register, please try again")
+		response.Error(c, http.StatusInternalServerError, "Failed to register, Username or Email already exists, please try again")
 		return
 	}
 

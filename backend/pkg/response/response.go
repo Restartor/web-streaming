@@ -14,3 +14,6 @@ func Success(c *gin.Context, status int, data interface{}) {
 func Error(c *gin.Context, status int, err string) {
 	c.JSON(status, DataResponse{Data: nil, Error: err})
 }
+
+// response.error(c, http.StatusBadRequest, "error adding films please try again"})
+// response.success(c, http.StatusCreated, gin.H{"message": "Film Added"})

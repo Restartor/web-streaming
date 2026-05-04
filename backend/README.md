@@ -2,6 +2,19 @@
 
 A small, beginner-friendly backend for a web streaming example. This repo is intended for learning how a Go web service is organized and run.
 
+✅ Clean architecture
+✅ JWT auth middleware
+✅ Admin only middleware
+✅ Input validation
+✅ Duplicate check (email & username)
+✅ Rate limiting
+✅ CORS
+✅ Zerolog logging
+✅ Consistent response format
+✅ /api/v1 versioning
+✅ json:"-" pada password
+✅ GORM tags pada Filem
+
 **Prerequisites**
 - Install Go (1.18+ recommended).
 
