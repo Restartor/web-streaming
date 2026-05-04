@@ -1,56 +1,110 @@
-**Web Streaming (Backend)**
+# Web Streaming Backend
 
-A small, beginner-friendly backend for a web streaming example. This repo is intended for learning how a Go web service is organized and run.
+This repository contains a Go backend for a simple web streaming app. It uses Gin for HTTP routing, GORM with PostgreSQL for persistence, JWT for authentication, and rate limiting for selected public endpoints.
 
-✅ Clean architecture
-✅ JWT auth middleware
-✅ Admin only middleware
-✅ Input validation
-✅ Duplicate check (email & username)
-✅ Rate limiting
-✅ CORS
-✅ Zerolog logging
-✅ Consistent response format
-✅ /api/v1 versioning
-✅ json:"-" pada password
-✅ GORM tags pada Filem
+## Features
 
-**Prerequisites**
-- Install Go (1.18+ recommended).
+- User registration and login
+- JWT-based authentication
+- Admin-only film management
+- Film listing and title search
+- PostgreSQL-backed storage with automatic migration on startup
 
-**Quick Start**
-1. Open a terminal and go to the backend folder:
+## Requirements
 
-	```bash
-	cd backend
-	```
+- Go 1.25 or newer
+- PostgreSQL database
+- A `.env` file with the required environment variables
 
-2. Download dependencies and run the server:
+## Setup
+
+1. Open a terminal in the `backend` folder.
+
+2. Install dependencies.
 
 	```bash
 	go mod tidy
+	```
+
+3. Create a `.env` file in `backend` with your database and JWT settings.
+
+4. Start the server.
+
+	```bash
 	go run .
 	```
 
-3. The server will print the listening port in the console — open that address in your browser or use `curl`/Postman to call the routes.
+The server starts on port `1010` by default.
 
-**Project Structure**
-- **main:** [backend/main.go](backend/main.go) — application entrypoint and server start.
-- **config:** [backend/config/database.go](backend/config/database.go) — configuration helpers (database setup).
-- **internal/domain:** [backend/internal/domain](backend/internal/domain) — domain models (`film.go`, `user.go`).
-- **internal/handler:** [backend/internal/handler](backend/internal/handler) — HTTP handlers for routes.
-- **internal/service:** [backend/internal/service](backend/internal/service) — business logic.
-- **internal/repository:** [backend/internal/repository](backend/internal/repository) — data access layer.
-- **pkg/middleware:** [backend/pkg/middleware](backend/pkg/middleware) — middleware utilities (auth, etc.).
-- **routes:** [backend/routes/routes.go](backend/routes/routes.go) — route definitions and wiring.
+## Environment Variables
 
-**How to Explore (for Beginners)**
-- To see how a request flows: follow the handler in `internal/handler`, then the service in `internal/service`, and finally repository in `internal/repository`.
-- Look at `routes/routes.go` to see which endpoints are available and which handler each one calls.
+The application reads these values at startup:
 
-**Next Steps / Tips**
-- Add environment variables or a `.env` file if the project expects database credentials.
-- Run `go build` to produce an executable: `go build -o server .` then run `./server`.
+- `DB_HOST`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_NAME`
+- `DB_PORT`
+- `DB_SSLMODE`
+- `JWT_SECRET`
 
-If you want, I can add example curl commands or a tiny quickstart that shows one working endpoint.
+Example:
 
+```env
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=web_streaming
+DB_PORT=5432
+DB_SSLMODE=disable
+JWT_SECRET=your-secret-key
+```
+
+## API Routes
+
+Public routes under `/api/v1`:
+
+- `POST /register` - create a new user
+- `POST /login` - sign in and receive a JWT token
+- `GET /films` - list all films
+- `GET /films/search?title=...` - search films by title
+
+Protected admin routes under `/api/v1`:
+
+- `POST /films` - create a film`
+- `PUT /films/:id` - update a film
+- `DELETE /films/:id` - delete a film
+
+The protected routes require authentication and the admin-only middleware.
+
+## Project Structure
+
+- `backend/main.go` - application entrypoint
+- `backend/config/database.go` - database connection and migration setup
+- `backend/internal/domain` - domain models and interfaces
+- `backend/internal/handler` - HTTP handlers
+- `backend/internal/service` - business logic
+- `backend/internal/repository` - data access layer
+- `backend/pkg/middleware` - auth and rate-limiting middleware
+- `backend/pkg/response` - shared API response helpers
+- `backend/routes/routes.go` - route registration
+
+## Notes
+
+- The backend enables CORS for `http://localhost:5174`.
+- Database tables for users and films are migrated automatically when the app starts.
+- If you want to test the API quickly, start with `POST /register`, then `POST /login`, and use the returned token for protected endpoints.
+
+## Running Build
+
+To produce a binary:
+
+```bash
+go build -o server.exe .
+```
+
+Then run it with:
+
+```bash
+server.exe
+```
