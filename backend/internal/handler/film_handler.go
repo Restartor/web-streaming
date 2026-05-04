@@ -2,6 +2,7 @@ package handler
 
 import (
 	"backend/internal/domain"
+	"backend/pkg/response"
 	"net/http"
 	"strconv"
 
@@ -17,11 +18,10 @@ func (r *FilmHandler) GetAllFilms(c *gin.Context) {
 	filems, err := r.service.GetAllFilms()
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "error loading films.."})
+		response.Error(c, http.StatusBadRequest, "error loading films..")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"films": filems})
-
+	response.Success(c, http.StatusOK, gin.H{"films": filems})
 }
 
 func (r *FilmHandler) GetFilmByTitle(c *gin.Context) {
@@ -31,11 +31,11 @@ func (r *FilmHandler) GetFilmByTitle(c *gin.Context) {
 	titlefilems, err := r.service.GetFilmByTitle(title)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "films your looking for is not available"})
+		response.Error(c, http.StatusBadRequest, "error loading films..")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"films": titlefilems})
+	response.Success(c, http.StatusOK, gin.H{"films": titlefilems})
 
 }
 
@@ -43,39 +43,38 @@ func (r *FilmHandler) CreateFilm(c *gin.Context) {
 	var filem domain.Filem
 
 	if err := c.ShouldBindJSON(&filem); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "input not valid"})
+		response.Error(c, http.StatusBadRequest, "create input not valid")
 		return
 	}
 
 	if err := r.service.CreateFilm(&filem); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		response.Error(c, http.StatusBadRequest, "error adding films please try again")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Film Added Succesfully!!"})
-
+	response.Success(c, http.StatusCreated, gin.H{"message": "Film Added"})
 }
 
 func (r *FilmHandler) UpdateFilm(c *gin.Context) {
 
 	var filem domain.Filem
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id")) // ambil parameter id dari URL dan konversi ke integer
 	filem.ID = uint(id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "error getting parameters"})
+		response.Error(c, http.StatusBadRequest, "error getting parameters")
 	}
 
 	if err := c.ShouldBindJSON(&filem); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "input not valid"})
+		response.Error(c, http.StatusBadRequest, "input not valid")
 		return
 	}
 	if err := r.service.UpdateFilm(&filem); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		response.Error(c, http.StatusBadRequest, "error updating films")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Film Updated Succesfully!!"})
+	response.Success(c, http.StatusOK, gin.H{"message": "Film Updated Successfully!"})
 
 }
 
@@ -83,14 +82,15 @@ func (r *FilmHandler) DeleteFilm(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "error getting parameters"})
+		response.Error(c, http.StatusBadRequest, "error getting parameters id")
 		return
 	}
 	if err := r.service.DeleteFilm(uint(id)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		response.Error(c, http.StatusBadRequest, "Error deleting films please try again")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Film Deleted Successfully!"})
+
+	response.Success(c, http.StatusOK, gin.H{"message": "film successfully deleted!"})
 }
 
 func NewFilmHandler(service domain.FilmService) *FilmHandler {
