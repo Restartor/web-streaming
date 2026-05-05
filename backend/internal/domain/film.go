@@ -14,8 +14,8 @@ type Filem struct {
 }
 
 type UserWatchedList struct {
-	UserID uint `gorm:"not null"`
-	FilmID uint `gorm:"not null"`
+	UserID uint `gorm:"primaryKey; not null;index"`
+	FilmID uint `gorm:"primaryKey; not null"`
 }
 
 type FilmRepository interface {

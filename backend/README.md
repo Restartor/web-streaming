@@ -44,6 +44,60 @@ A small, beginner-friendly backend for a web streaming example. This repo is int
 - **pkg/middleware:** [backend/pkg/middleware](backend/pkg/middleware) — middleware utilities (auth, etc.).
 - **routes:** [backend/routes/routes.go](backend/routes/routes.go) — route definitions and wiring.
 
+**ERD Diagram**
+
+```mermaid
+erDiagram
+	USER {
+		uint ID PK
+		string Username
+		string Email
+		string Password
+		string Role
+		time CreatedAt
+	}
+
+	FILM {
+		uint ID PK
+		string Title
+		string Description
+		string Genre
+		int Year
+		string PosterURL
+		float Rating
+		string VideoURL
+	}
+
+	USER_WATCHED_LIST {
+		uint UserID FK
+		uint FilmID FK
+	}
+
+	USER ||--o{ USER_WATCHED_LIST : watches
+	FILM ||--o{ USER_WATCHED_LIST : appears_in
+```
+
+**Flow Diagram**
+
+```mermaid
+flowchart LR
+	A[Client / Frontend] --> B[Go router /api/v1]
+	B --> C{Route type}
+	C -->|Public| D[Rate Limiter]
+	C -->|Auth required| E[Auth Middleware]
+	C -->|Admin only| E
+	D --> F[Handler]
+	E --> F[Handler]
+	F --> G[Service]
+	G --> H[Repository]
+	H --> I[(PostgreSQL via GORM)]
+	I --> H
+	H --> G
+	G --> F
+	F --> J[Response JSON]
+	J --> A
+```
+
 **How to Explore (for Beginners)**
 - To see how a request flows: follow the handler in `internal/handler`, then the service in `internal/service`, and finally repository in `internal/repository`.
 - Look at `routes/routes.go` to see which endpoints are available and which handler each one calls.

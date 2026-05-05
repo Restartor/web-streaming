@@ -51,9 +51,10 @@ func (r *WatchedHandler) DeleteHistoryOne(c *gin.Context) {
 
 func (r *WatchedHandler) DeleteAllHistory(c *gin.Context) {
 
-	var watchlist domain.UserWatchedList
+	val, _ := c.Get("user_id") // karena user_id itu disimpan di context dengan tipe data uint, jadi kita harus melakukan type assertion untuk mengubahnya menjadi uint
+	userID := val.(uint)       // jelasinnya userID itu uint, jadi kita type assertion ke uint
 
-	err := r.service.DeleteAllHistory(watchlist.UserID)
+	err := r.service.DeleteAllHistory(userID)
 
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "bad request try again")
