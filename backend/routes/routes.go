@@ -26,17 +26,17 @@ func SetupRoutes(
 	userAuth.Use(middleware.AuthMiddleware())
 	{
 		userAuth.GET("/history", watchedHandler.GetAllHistory)
-		userAuth.DELETE("/history/:id", watchedHandler.DeleteHistoryOne)
-		userAuth.DELETE("/history", watchedHandler.DeleteAllHistory)
-		userAuth.POST("/watchlist", watchedHandler.AddToWatchlist)
+		userAuth.DELETE("/history/:id", middleware.RateLimiter("3-M"), watchedHandler.DeleteHistoryOne)
+		userAuth.DELETE("/history", middleware.RateLimiter("3-M"), watchedHandler.DeleteAllHistory)
+		userAuth.POST("/watchlist", middleware.RateLimiter("3-M"), watchedHandler.AddToWatchlist)
 	}
 
 	protected := routes.Group("/api/v1")
 	protected.Use(middleware.AuthMiddleware(), pkg.AdminOnly())
 	{
-		protected.POST("/films", filmHandler.CreateFilm)
-		protected.PUT("/films/:id", filmHandler.UpdateFilm)
-		protected.DELETE("/films/:id", filmHandler.DeleteFilm)
+		protected.POST("/films", middleware.RateLimiter("5-M"), filmHandler.CreateFilm)
+		protected.PUT("/films/:id", middleware.RateLimiter("3-M"), filmHandler.UpdateFilm)
+		protected.DELETE("/films/:id", middleware.RateLimiter("3-M"), filmHandler.DeleteFilm)
 	}
 
 }

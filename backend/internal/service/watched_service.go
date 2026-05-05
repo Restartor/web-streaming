@@ -2,6 +2,7 @@ package service
 
 import (
 	"backend/internal/domain"
+	"errors"
 )
 
 type WatchedService struct {
@@ -21,7 +22,12 @@ func (r *WatchedService) DeleteAllHistory(userID uint) error {
 }
 
 func (r *WatchedService) AddToWatchlist(userID uint, filmID uint) error {
-	return r.repo.UserAddWatchlist(userID, filmID)
+
+	if err := r.repo.UserAddWatchlist(userID, filmID); err != nil {
+		return errors.New("error data tidak valid")
+	}
+
+	return nil
 }
 
 func NewHistoryService(repo domain.WatchedRepository) domain.WatchedService {

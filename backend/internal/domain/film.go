@@ -6,7 +6,7 @@ type Filem struct {
 	ID          uint           `gorm:"primaryKey"`
 	Title       string         `gorm:"not null"`
 	Description string         `gorm:"not null"`
-	Genre       pq.StringArray `gorm:"not null"`
+	Genre       pq.StringArray `gorm:"not null; type:text[]"`
 	Year        int            `gorm:"not null"`
 	PosterURL   string         `gorm:"not null"`
 	Rating      float64        `gorm:"not null; default:0"`
