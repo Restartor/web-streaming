@@ -44,6 +44,6 @@ type WatchedRepository interface {
 type WatchedService interface {
 	GetAllHistory(userID uint) ([]UserWatchedList, error)
 	DeleteHistoryOne(userID uint, filmID uint) error
-	DeleteAllHistory(userID uint) ([]UserWatchedList, error)
+	DeleteAllHistory(userID uint) error
 	AddToWatchlist(userID uint, filmID uint) error
 }
