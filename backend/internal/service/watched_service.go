@@ -27,3 +27,5 @@ func (r *WatchedService) AddToWatchlist(userID uint, filmID uint) error {
 func NewHistoryService(repo domain.WatchedRepository) domain.WatchedService {
 	return &WatchedService{repo: repo}
 }
+
+// finished
