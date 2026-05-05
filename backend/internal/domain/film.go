@@ -1,14 +1,21 @@
 package domain
 
+import "github.com/lib/pq"
+
 type Filem struct {
-	ID          uint    `gorm:"primaryKey"`
-	Title       string  `gorm:"not null"`
-	Description string  `gorm:"not null"`
-	Genre       string  `gorm:"not null"`
-	Year        int     `gorm:"not null"`
-	PosterURL   string  `gorm:"not null"`
-	Rating      float64 `gorm:"not null; default:0"`
-	VideoURL    string  `gorm:"not null"`
+	ID          uint           `gorm:"primaryKey"`
+	Title       string         `gorm:"not null"`
+	Description string         `gorm:"not null"`
+	Genre       pq.StringArray `gorm:"not null"`
+	Year        int            `gorm:"not null"`
+	PosterURL   string         `gorm:"not null"`
+	Rating      float64        `gorm:"not null; default:0"`
+	VideoURL    string         `gorm:"not null"`
+}
+
+type UserWatchedList struct {
+	UserID uint `gorm:"not null"`
+	FilmID uint `gorm:"not null"`
 }
 
 type FilmRepository interface {
@@ -25,4 +32,18 @@ type FilmService interface {
 	CreateFilm(filem *Filem) error
 	UpdateFilm(filem *Filem) error
 	DeleteFilm(id uint) error
+}
+
+type WatchedRepository interface {
+	UserSeeHistory(userID uint) ([]UserWatchedList, error)
+	UserDeleteHistoryID(userID uint, filmID uint) error
+	UserDeleteEveryHistory(userID uint) error
+	UserAddWatchlist(userID uint, filmID uint) error
+}
+
+type WatchedService interface {
+	GetAllHistory(userID uint) ([]UserWatchedList, error)
+	DeleteHistoryOne(userID uint, filmID uint) error
+	DeleteAllHistory(userID uint) ([]UserWatchedList, error)
+	AddToWatchlist(userID uint, filmID uint) error
 }
