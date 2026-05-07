@@ -57,24 +57,32 @@ erDiagram
 		time CreatedAt
 	}
 
-	FILM {
+	FILEM {
 		uint ID PK
 		string Title
 		string Description
-		string Genre
+		text[] Genre
 		int Year
 		string PosterURL
 		float Rating
 		string VideoURL
 	}
 
-	USER_WATCHED_LIST {
-		uint UserID FK
-		uint FilmID FK
+	USER_HISTORY {
+		uint UserID PK, FK
+		uint FilmID PK, FK
+		time LastWatchedAt
 	}
 
-	USER ||--o{ USER_WATCHED_LIST : watches
-	FILM ||--o{ USER_WATCHED_LIST : appears_in
+	USER_WATCHED_LIST {
+		uint UserID PK, FK
+		uint FilmID PK, FK
+	}
+
+	USER ||--o{ USER_HISTORY : records
+	FILEM ||--o{ USER_HISTORY : is_recorded_for
+	USER ||--o{ USER_WATCHED_LIST : saves
+	FILEM ||--o{ USER_WATCHED_LIST : appears_in
 ```
 
 **Flow Diagram**
