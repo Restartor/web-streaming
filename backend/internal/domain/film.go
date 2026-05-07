@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/lib/pq"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 type Filem struct {
 	ID          uint           `gorm:"primaryKey"`
@@ -13,9 +17,15 @@ type Filem struct {
 	VideoURL    string         `gorm:"not null"`
 }
 
+type UserHistory struct {
+	UserID        uint      `gorm:"primaryKey; not null;index"`
+	FilmID        uint      `gorm:"primaryKey; not null"`
+	LastWatchedAt time.Time `gorm:"not null"`
+}
+
 type UserWatchedList struct {
-	UserID uint `gorm:"primaryKey; not null;index"`
-	FilmID uint `gorm:"primaryKey; not null"`
+	UserID uint `gorm:"primaryKey; not null"`
+	FilmID uint `gorm:"not null"`
 }
 
 type FilmRepository interface {
@@ -34,16 +44,28 @@ type FilmService interface {
 	DeleteFilm(id uint) error
 }
 
-type WatchedRepository interface {
-	UserSeeHistory(userID uint) ([]UserWatchedList, error)
+type HistoryRepository interface {
+	UserSeeHistory(userID uint) ([]UserHistory, error)
 	UserDeleteHistoryID(userID uint, filmID uint) error
 	UserDeleteEveryHistory(userID uint) error
-	UserAddWatchlist(userID uint, filmID uint) error
+	UserRecordWatch(userID uint, filmID uint) error
 }
 
-type WatchedService interface {
-	GetAllHistory(userID uint) ([]UserWatchedList, error)
+type HistoryService interface {
+	GetAllHistory(userID uint) ([]UserHistory, error)
 	DeleteHistoryOne(userID uint, filmID uint) error
 	DeleteAllHistory(userID uint) error
+	RecordWatch(userID uint, filmID uint) error
+}
+
+type WatchlistRepository interface {
+	UserAddWatchlist(userID uint, filmID uint) error
+	RemoveFromWatchlist(userID uint, filmID uint) error
+	GetWatchlist(userID uint) ([]UserWatchedList, error)
+}
+
+type WatchlistService interface {
 	AddToWatchlist(userID uint, filmID uint) error
+	RemoveFromWatchlist(userID uint, filmID uint) error
+	GetWatchlist(userID uint) ([]UserWatchedList, error)
 }

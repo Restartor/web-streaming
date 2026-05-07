@@ -12,7 +12,8 @@ func SetupRoutes(
 	routes *gin.Engine,
 	userHandler *handler.UserHandler,
 	filmHandler *handler.FilmHandler,
-	watchedHandler *handler.WatchedHandler,
+	watchedHandler *handler.WatchlistHandler,
+	historyHandler *handler.HistoryHandler,
 ) {
 	user := routes.Group("/api/v1")
 	{
@@ -25,10 +26,13 @@ func SetupRoutes(
 	userAuth := routes.Group("/api/v1")
 	userAuth.Use(middleware.AuthMiddleware())
 	{
-		userAuth.GET("/history", watchedHandler.GetAllHistory)
-		userAuth.DELETE("/history/:id", middleware.RateLimiter("3-M"), watchedHandler.DeleteHistoryOne)
-		userAuth.DELETE("/history", middleware.RateLimiter("3-M"), watchedHandler.DeleteAllHistory)
-		userAuth.POST("/watchlist", middleware.RateLimiter("3-M"), watchedHandler.AddToWatchlist)
+		userAuth.GET("/watchlist", watchedHandler.GetWatchlist)
+		userAuth.DELETE("/watchlist/:id", middleware.RateLimiter("3-M"), watchedHandler.RemoveFromWatchlist)
+		userAuth.POST("/watchlist", middleware.RateLimiter("5-M"), watchedHandler.AddToWatchlist)
+		userAuth.GET("/history", historyHandler.GetAllHistory)
+		userAuth.DELETE("/history/:id", middleware.RateLimiter("3-M"), historyHandler.DeleteHistoryOne)
+		userAuth.DELETE("/history", middleware.RateLimiter("3-M"), historyHandler.DeleteAllHistory)
+
 	}
 
 	protected := routes.Group("/api/v1")

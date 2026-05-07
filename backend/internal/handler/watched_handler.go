@@ -9,11 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type WatchedHandler struct {
-	service domain.WatchedService
+type HistoryHandler struct {
+	service domain.HistoryService
 }
 
-func (r *WatchedHandler) GetAllHistory(c *gin.Context) {
+func (r *HistoryHandler) GetAllHistory(c *gin.Context) {
 
 	val, _ := c.Get("user_id")
 	userID := val.(uint)
@@ -28,7 +28,7 @@ func (r *WatchedHandler) GetAllHistory(c *gin.Context) {
 
 }
 
-func (r *WatchedHandler) DeleteHistoryOne(c *gin.Context) {
+func (r *HistoryHandler) DeleteHistoryOne(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 
@@ -49,7 +49,7 @@ func (r *WatchedHandler) DeleteHistoryOne(c *gin.Context) {
 	response.Success(c, http.StatusOK, gin.H{"message": "film successfully deleted from history "})
 }
 
-func (r *WatchedHandler) DeleteAllHistory(c *gin.Context) {
+func (r *HistoryHandler) DeleteAllHistory(c *gin.Context) {
 
 	val, _ := c.Get("user_id") // karena user_id itu disimpan di context dengan tipe data uint, jadi kita harus melakukan type assertion untuk mengubahnya menjadi uint
 	userID := val.(uint)       // jelasinnya userID itu uint, jadi kita type assertion ke uint
@@ -65,25 +65,6 @@ func (r *WatchedHandler) DeleteAllHistory(c *gin.Context) {
 
 }
 
-func (r *WatchedHandler) AddToWatchlist(c *gin.Context) {
-
-	var watchlist domain.UserWatchedList
-
-	if err := c.ShouldBindJSON(&watchlist); err != nil {
-		response.Error(c, http.StatusBadRequest, "invalid, please try again")
-		return
-	}
-
-	userID, _ := c.Get("user_id")
-	if err := r.service.AddToWatchlist(userID.(uint), watchlist.FilmID); err != nil {
-		response.Error(c, http.StatusBadRequest, "error adding to watchlist, please try again")
-		return
-	}
-
-	response.Success(c, http.StatusOK, "film successfully added to watchlist")
-
-}
-
-func NewWatchlistHandler(service domain.WatchedService) *WatchedHandler {
-	return &WatchedHandler{service: service}
+func NewHistoryHandler(service domain.HistoryService) *HistoryHandler {
+	return &HistoryHandler{service: service}
 }

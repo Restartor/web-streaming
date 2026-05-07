@@ -39,9 +39,13 @@ func main() {
 	filmService := service.NewFilmService(filmRepository)
 	filmHandler := handler.NewFilmHandler(filmService)
 
-	watchedRepository := repository.NewHistoryRepository(config.DB)
-	watchedService := service.NewHistoryService(watchedRepository)
-	watchedHandler := handler.NewWatchlistHandler(watchedService)
+	watchlistRepository := repository.NewWatchlistRepository(config.DB)
+	watchlistService := service.NewWatchlistService(watchlistRepository)
+	watchlistHandler := handler.NewWatchlistHandler(watchlistService)
+
+	historyRepository := repository.NewHistoryRepository(config.DB)
+	historyService := service.NewHistoryService(historyRepository)
+	historyHandler := handler.NewHistoryHandler(historyService)
 
 	// routes
 	router := gin.Default()
@@ -57,7 +61,7 @@ func main() {
 		c.Next()
 	})
 
-	routes.SetupRoutes(router, userHandler, filmHandler, watchedHandler)
+	routes.SetupRoutes(router, userHandler, filmHandler, watchlistHandler, historyHandler)
 
 	router.Run(":1010")
 }
