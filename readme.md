@@ -1,5 +1,26 @@
 **Web Streaming (Backend)**
 
+## Deskripsi Proyek
+
+Ini adalah backend API untuk aplikasi web streaming film yang dibangun dengan Go dan PostgreSQL. Proyek ini menggunakan arsitektur clean architecture dengan pemisahan yang jelas antara layer handler, service, dan repository.
+
+**Fitur Utama:**
+- ✅ Autentikasi user dengan JWT (access token + refresh token)
+- ✅ Sistem role-based access control (user biasa dan admin)
+- ✅ Rate limiting untuk melindungi API dari abuse
+- ✅ CORS (Cross-Origin Resource Sharing) support
+- ✅ Database management dengan GORM ORM
+- ✅ Logging terstruktur dengan Zerolog
+- ✅ Input validation otomatis
+- ✅ Response format yang konsisten
+
+**Apa yang Bisa Dilakukan:**
+- **User** dapat register, login, melihat daftar film, mencari film, menambah ke watchlist, melihat history menonton
+- **Admin** dapat mengelola film (create, update, delete)
+- Setiap action dilindungi middleware autentikasi dan rate limiter
+
+---
+
 **Project Structure**
 - **main:** [backend/main.go](backend/main.go) — application entrypoint and server start.
 - **config:** [backend/config/database.go](backend/config/database.go) — configuration helpers (database setup).
