@@ -40,15 +40,15 @@ erDiagram
 		time LastWatchedAt
 	}
 
-	USER_WATCHED_LIST {
+	USER_WATCH_LIST {
 		uint UserID PK, FK
 		uint FilmID PK, FK
 	}
 
 	USER ||--o{ USER_HISTORY : records
 	FILEM ||--o{ USER_HISTORY : is_recorded_for
-	USER ||--o{ USER_WATCHED_LIST : saves
-	FILEM ||--o{ USER_WATCHED_LIST : appears_in
+	USER ||--o{ USER_WATCH_LIST : saves
+	FILEM ||--o{ USER_WATCH_LIST : appears_in
 ```
 
 **Flow Diagram**
