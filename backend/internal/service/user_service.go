@@ -87,10 +87,6 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 	return "", nil
 }
 
-func NewRefreshTokenRepository(repo domain.UserRepository, refreshTokenRepo domain.RefreshTokenRepository) domain.UserService {
-	return &UserService{repo: repo, refreshTokenRepo: refreshTokenRepo}
-}
-
 func NewUserService(repo domain.UserRepository, refreshTokenRepo domain.RefreshTokenRepository) domain.UserService {
 	return &UserService{repo: repo, refreshTokenRepo: refreshTokenRepo}
 }

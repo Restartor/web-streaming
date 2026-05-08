@@ -8,13 +8,16 @@ This project focuses on scalable backend development, authentication systems, mi
 
 # Tech Stack
 
-- Golang
-- PostgreSQL
-- GORM
-- JWT Authentication
-- Zerolog
-- REST API
-- Clean Architecture
+- Go (module: `backend`, go 1.25)
+- Gin (github.com/gin-gonic/gin)
+- GORM with Postgres driver (gorm.io/gorm, gorm.io/driver/postgres)
+- PostgreSQL (github.com/lib/pq)
+- JWT (github.com/golang-jwt/jwt)
+- Zerolog (github.com/rs/zerolog)
+- Rate limiter (github.com/ulule/limiter)
+- UUID (github.com/google/uuid)
+- dotenv (github.com/joho/godotenv)
+- REST API, Clean Architecture
 
 ---
 
@@ -93,18 +96,48 @@ flowchart LR
 
 # Project Structure
 
+File and folder layout (actual contents of `backend/`):
+
 ```text
 backend/
+├── .env.example
+├── .gitignore
+├── go.mod
+├── go.sum
 ├── main.go
 ├── config/
+│   └── database.go
 ├── internal/
 │   ├── domain/
-│   ├── handler/
-│   ├── service/
-│   └── repository/
+│   │   ├── film.go
+│   │   └── user.go
+	│   ├── handler/
+	│   │   ├── film_handler.go
+	│   │   ├── user_handler.go
+	│   │   ├── watched_handler.go
+	│   │   └── watchlist_handler.go
+	│   ├── repository/
+	│   │   ├── film_repository.go
+	│   │   ├── refresh_token_repository.go
+	│   │   ├── user_repository.go
+	│   │   ├── watched_repository.go
+	│   │   └── watchlist_repository.go
+	│   └── service/
+	│       ├── film_service.go
+	│       ├── user_service.go
+	│       ├── watched_service.go
+	│       └── watchlist_service.go
 ├── pkg/
-│   └── middleware/
+│   ├── adminOnly.go
+│   ├── logger/
+│   │   └── logger.go
+│   ├── middleware/
+│   │   ├── auth.middleware.go
+	│   │   └── rate_limiter.go
+│   └── response/
+│       └── response.go
 └── routes/
+	 └── routes.go
 ```
 
 ## Folder Responsibilities
@@ -112,12 +145,15 @@ backend/
 | Folder | Description |
 |---|---|
 | `main.go` | Application entrypoint |
-| `config/` | Database & app configuration |
-| `internal/domain` | Domain models |
-| `internal/handler` | HTTP handlers |
-| `internal/service` | Business logic |
-| `internal/repository` | Database access layer |
-| `pkg/middleware` | Authentication & middleware |
+| `config/` | Database & app configuration (database connection) |
+| `internal/domain` | Domain models (`film.go`, `user.go`) |
+| `internal/handler` | HTTP handlers (user, film, watched, watchlist) |
+| `internal/service` | Business logic / use-cases |
+| `internal/repository` | Database access layer (users, films, refresh tokens, watchlist, history) |
+| `pkg/adminOnly.go` | Admin-only helper / middleware |
+| `pkg/logger` | Structured logging (Zerolog) |
+| `pkg/middleware` | Authentication & rate limiting middleware |
+| `pkg/response` | Standard JSON response helpers |
 | `routes/` | Route registration |
 
 ---
