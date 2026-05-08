@@ -15,7 +15,7 @@ type WatchlistHandler struct {
 
 func (r *WatchlistHandler) AddToWatchlist(c *gin.Context) {
 
-	var watchlist domain.UserWatchedList
+	var watchlist domain.UserWatchList
 
 	if err := c.ShouldBindJSON(&watchlist); err != nil {
 		response.Error(c, http.StatusBadRequest, "invalid, please try again")

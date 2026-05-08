@@ -16,7 +16,7 @@ func (r *WatchlistService) RemoveFromWatchlist(userID uint, filmID uint) error {
 	return r.repo.RemoveFromWatchlist(userID, filmID)
 }
 
-func (r *WatchlistService) GetWatchlist(userID uint) ([]domain.UserWatchedList, error) {
+func (r *WatchlistService) GetWatchlist(userID uint) ([]domain.UserWatchList, error) {
 	return r.repo.GetWatchlist(userID)
 }
 

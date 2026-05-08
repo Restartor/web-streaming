@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"backend/pkg/response"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	limiter "github.com/ulule/limiter/v3"
@@ -16,7 +18,11 @@ func RateLimiter(rateStr string) gin.HandlerFunc {
 	instance := limiter.New(store, rate)
 
 	if err != nil {
-		fmt.Print("hello from the otherside")
+
+		return func(c *gin.Context) {
+			response.Error(c, http.StatusInternalServerError, fmt.Sprintf("invalid rate format: %v", err))
+			c.Abort()
+		}
 	}
 
 	return mgin.NewMiddleware(instance)

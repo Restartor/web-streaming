@@ -23,7 +23,7 @@ type UserHistory struct {
 	LastWatchedAt time.Time `gorm:"not null"`
 }
 
-type UserWatchedList struct {
+type UserWatchList struct {
 	UserID uint `gorm:"primaryKey; not null"`
 	FilmID uint `gorm:"not null"`
 }
@@ -61,11 +61,11 @@ type HistoryService interface {
 type WatchlistRepository interface {
 	UserAddWatchlist(userID uint, filmID uint) error
 	RemoveFromWatchlist(userID uint, filmID uint) error
-	GetWatchlist(userID uint) ([]UserWatchedList, error)
+	GetWatchlist(userID uint) ([]UserWatchList, error)
 }
 
 type WatchlistService interface {
 	AddToWatchlist(userID uint, filmID uint) error
 	RemoveFromWatchlist(userID uint, filmID uint) error
-	GetWatchlist(userID uint) ([]UserWatchedList, error)
+	GetWatchlist(userID uint) ([]UserWatchList, error)
 }

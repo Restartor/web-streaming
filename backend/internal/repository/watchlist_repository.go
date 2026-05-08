@@ -12,17 +12,17 @@ type WatchlistRepository struct {
 
 func (r *WatchlistRepository) UserAddWatchlist(userID uint, filmID uint) error {
 
-	watchlist := domain.UserWatchedList{UserID: userID, FilmID: filmID}
+	watchlist := domain.UserWatchList{UserID: userID, FilmID: filmID}
 	return r.db.Create(&watchlist).Error
 
 }
 
 func (r *WatchlistRepository) RemoveFromWatchlist(userID uint, filmID uint) error {
-	return r.db.Where("user_id = ? AND film_id = ?", userID, filmID).Delete(&domain.UserWatchedList{}).Error
+	return r.db.Where("user_id = ? AND film_id = ?", userID, filmID).Delete(&domain.UserWatchList{}).Error
 }
 
-func (r *WatchlistRepository) GetWatchlist(userID uint) ([]domain.UserWatchedList, error) {
-	var watchlist []domain.UserWatchedList
+func (r *WatchlistRepository) GetWatchlist(userID uint) ([]domain.UserWatchList, error) {
+	var watchlist []domain.UserWatchList
 	err := r.db.Where("user_id = ?", userID).Find(&watchlist).Error
 	return watchlist, err
 }
