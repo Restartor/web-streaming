@@ -158,6 +158,100 @@ backend/
 
 ---
 
+# Quick Start
+
+Prerequisites:
+
+- Go 1.25 or newer installed
+- PostgreSQL database
+- Copy and edit environment file from `.env.example`
+
+Run locally:
+
+```bash
+cp backend/.env.example backend/.env
+cd backend
+go mod download
+# Run directly
+go run main.go
+## or build and run executable
+go build -o web-streaming-backend .
+./web-streaming-backend
+```
+
+Environment notes:
+
+- Edit `backend/.env` to configure database URL, JWT secrets, and other settings.
+- The server exposes routes under `/api/v1`.
+
+# API Endpoint Preview
+
+Public endpoints:
+
+- `POST /api/v1/register` — Register a new user (rate limit: 5/min)
+- `POST /api/v1/login` — Login and receive access + refresh tokens (rate limit: 10/min)
+- `GET /api/v1/films` — List films (supports pagination query `page` and `limit`)
+- `GET /api/v1/films/search?title=...` — Search films by title
+
+Authenticated endpoints (require valid access token):
+
+- `GET /api/v1/watchlist` — Get current user's watchlist
+- `POST /api/v1/watchlist` — Add a film to watchlist (rate limit: 5/min)
+- `DELETE /api/v1/watchlist/:id` — Remove a film from watchlist (rate limit: 3/min)
+- `GET /api/v1/history` — Get user's watch history
+- `DELETE /api/v1/history/:id` — Delete one history entry (rate limit: 3/min)
+- `DELETE /api/v1/history` — Delete all history (rate limit: 3/min)
+
+Admin endpoints (require auth + admin role):
+
+- `POST /api/v1/films` — Create a new film (rate limit: 5/min)
+- `PUT /api/v1/films/:id` — Update a film (rate limit: 3/min)
+- `DELETE /api/v1/films/:id` — Delete a film (rate limit: 3/min)
+
+# Example Response
+
+The project uses a consistent response wrapper `{ "data": ..., "error": ... }` located in `pkg/response/response.go`.
+
+Login success (HTTP 200):
+
+```json
+{
+	"data": {
+		"access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6...",
+		"refresh_token": "dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4..."
+	},
+	"error": null
+}
+```
+
+Get films success (HTTP 200) — paginated response inside `data.films`:
+
+```json
+{
+	"data": {
+		"films": {
+			"films": [
+				{
+					"ID": 1,
+					"Title": "Example Movie",
+					"Description": "A sample description",
+					"Genre": ["Drama","Thriller"],
+					"Year": 2024,
+					"PosterURL": "https://example.com/poster.jpg",
+					"Rating": 8.7,
+					"VideoURL": "https://cdn.example.com/video.mp4"
+				}
+			],
+			"total": 1,
+			"page": 1,
+			"limit": 10
+		}
+	},
+	"error": null
+}
+```
+
+
 # Database Design
 
 ## ERD Diagram
