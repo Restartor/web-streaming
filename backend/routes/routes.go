@@ -19,6 +19,7 @@ func SetupRoutes(
 	{
 		user.POST("/register", middleware.RateLimiter("5-M"), userHandler.Register)
 		user.POST("/login", middleware.RateLimiter("10-M"), userHandler.Login)
+		user.POST("/refresh-token", middleware.RateLimiter("10-M"), userHandler.RefreshToken)
 		user.GET("/films", filmHandler.GetAllFilms)
 		user.GET("/films/search", filmHandler.GetFilmByTitle)
 	}

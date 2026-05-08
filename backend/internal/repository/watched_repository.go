@@ -2,8 +2,10 @@ package repository
 
 import (
 	"backend/internal/domain"
+	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type HistoryRepository struct {
@@ -26,8 +28,20 @@ func (r *HistoryRepository) UserDeleteEveryHistory(userID uint) error {
 }
 
 func (r *HistoryRepository) UserRecordWatch(userID uint, filmID uint) error {
-	record := domain.UserHistory{UserID: userID, FilmID: filmID}
-	return r.db.Create(&record).Error
+	record := domain.UserHistory{
+		UserID:        userID,
+		FilmID:        filmID,
+		LastWatchedAt: time.Now(),
+	}
+	return r.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "user_id"}, {Name: "film_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"last_watched_at"}),
+	}).Create(&record).Error
+	// penjelasan kode di atas adalah: fungsi UserRecordWatch menerima tiga parameter: userID, filmID, dan waktu
+	// saat ini (time.Now()). Fungsi ini membuat sebuah record baru dalam tabel UserHistory
+	// dengan nilai userID, filmID, dan lastWatchedAt yang diatur ke waktu saat ini.
+	// Jika sudah ada entri dengan kombinasi user_id dan film_id yang sama, maka nilai last_watched_at
+	//  akan diperbarui dengan waktu saat ini.
 }
 
 func NewHistoryRepository(db *gorm.DB) domain.HistoryRepository {

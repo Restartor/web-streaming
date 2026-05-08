@@ -34,7 +34,7 @@ func (r *FilmHandler) GetAllFilms(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "error loading films..")
 		return
 	}
-	response.Success(c, http.StatusOK, gin.H{"films": filems})
+	response.Success(c, http.StatusOK, filems)
 }
 
 func (r *FilmHandler) GetFilmByTitle(c *gin.Context) {

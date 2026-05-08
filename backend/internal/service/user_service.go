@@ -84,7 +84,38 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 }
 
 func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken string, err error) {
-	return "", nil
+
+	rt, err := r.refreshTokenRepo.FindByToken(refreshToken)
+
+	if err != nil {
+		return "", errors.New("refresh token is not valid")
+	}
+
+	if time.Now().After(rt.ExpiresAt) {
+		return "", errors.New("refresh token expire")
+	}
+
+	user, err := r.repo.FindByID(rt.UserID)
+
+	if err != nil {
+		return "", errors.New("user tidak ditemukan")
+	}
+
+	claims := jwt.MapClaims{
+		"user_id":  user.ID,
+		"username": user.Username,
+		"role":     user.Role,
+		"exp":      time.Now().Add(time.Minute * 15).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+	if err != nil {
+		return "", errors.New("gagal generate token baru")
+	}
+
+	return tokenString, nil
 }
 
 func NewUserService(repo domain.UserRepository, refreshTokenRepo domain.RefreshTokenRepository) domain.UserService {

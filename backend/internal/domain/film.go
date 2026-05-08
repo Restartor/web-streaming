@@ -26,6 +26,16 @@ type PaginatedFilms struct {
 	Page  int     `json:"page"`
 	Limit int     `json:"limit"`
 }
+type UserHistory struct {
+	UserID        uint      `gorm:"primaryKey; not null;index"`
+	FilmID        uint      `gorm:"primaryKey; not null"`
+	LastWatchedAt time.Time `gorm:"not null"`
+}
+
+type UserWatchList struct {
+	UserID uint `gorm:"primaryKey; not null"`
+	FilmID uint `gorm:"not null"`
+}
 
 type FilmRepository interface {
 	FindAll(query PaginationQuery) (PaginatedFilms, error)
@@ -43,11 +53,6 @@ type FilmService interface {
 	DeleteFilm(id uint) error
 }
 
-type UserHistory struct {
-	UserID        uint      `gorm:"primaryKey; not null;index"`
-	FilmID        uint      `gorm:"primaryKey; not null"`
-	LastWatchedAt time.Time `gorm:"not null"`
-}
 type HistoryRepository interface {
 	UserSeeHistory(userID uint) ([]UserHistory, error)
 	UserDeleteHistoryID(userID uint, filmID uint) error
@@ -62,10 +67,6 @@ type HistoryService interface {
 	RecordWatch(userID uint, filmID uint) error
 }
 
-type UserWatchList struct {
-	UserID uint `gorm:"primaryKey; not null"`
-	FilmID uint `gorm:"not null"`
-}
 type WatchlistRepository interface {
 	UserAddWatchlist(userID uint, filmID uint) error
 	RemoveFromWatchlist(userID uint, filmID uint) error

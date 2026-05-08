@@ -52,6 +52,22 @@ func (r *UserHandler) Login(c *gin.Context) {
 
 }
 
+func (r *UserHandler) RefreshToken(c *gin.Context) {
+	var input struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.Error(c, http.StatusBadRequest, "invalid input refresh token")
+		return
+	}
+	accessToken, err := r.service.RefreshAccessToken(input.RefreshToken)
+	if err != nil {
+		response.Error(c, http.StatusUnauthorized, "invalid refresh token")
+		return
+	}
+	response.Success(c, http.StatusOK, gin.H{"access_token": accessToken})
+}
+
 func NewUserHandler(service domain.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
