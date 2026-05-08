@@ -30,7 +30,7 @@ func DatabaseConnection() {
 	err = db.AutoMigrate(
 		&domain.User{},
 		&domain.Filem{},
-		&domain.UserWatchedList{},
+		&domain.UserWatchList{},
 	)
 
 	if err != nil {

@@ -50,7 +50,7 @@ func main() {
 	// routes
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "http://localhost:5174")
+		c.Header("Access-Control-Allow-Origin", os.Getenv("ALLOWED_ORIGINS"))
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type")
 		c.Header("Access-Control-Allow-Credentials", "true")

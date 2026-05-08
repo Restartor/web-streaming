@@ -15,7 +15,14 @@ type FilmHandler struct {
 
 func (r *FilmHandler) GetAllFilms(c *gin.Context) {
 
-	filems, err := r.service.GetAllFilms()
+	var query domain.PaginationQuery
+
+	if err := c.ShouldBindQuery(&query); err != nil {
+		query.Page = 1
+		query.Limit = 10
+	}
+
+	filems, err := r.service.GetAllFilms(query)
 
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "error loading films..")

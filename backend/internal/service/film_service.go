@@ -6,8 +6,8 @@ type FilmService struct {
 	repo domain.FilmRepository
 }
 
-func (r *FilmService) GetAllFilms() ([]domain.Filem, error) {
-	return r.repo.FindAll()
+func (r *FilmService) GetAllFilms(query domain.PaginationQuery) (domain.PaginatedFilms, error) {
+	return r.repo.FindAll(query)
 }
 
 func (r *FilmService) GetFilmByTitle(title string) ([]domain.Filem, error) {
