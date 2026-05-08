@@ -31,6 +31,8 @@ func DatabaseConnection() {
 		&domain.User{},
 		&domain.Filem{},
 		&domain.UserWatchList{},
+		&domain.UserHistory{},
+		&domain.RefreshToken{},
 	)
 
 	if err != nil {

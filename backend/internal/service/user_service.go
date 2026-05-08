@@ -7,11 +7,13 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
-	repo domain.UserRepository // db hanya diketahui pas userRepository
+	repo             domain.UserRepository // db hanya diketahui pas userRepository
+	refreshTokenRepo domain.RefreshTokenRepository
 }
 
 func (r *UserService) UserRegister(user *domain.User) error {
@@ -35,18 +37,18 @@ func (r *UserService) UserRegister(user *domain.User) error {
 	return r.repo.Create(user)
 }
 
-func (r *UserService) UserLogin(email, password string) (string, error) {
+func (r *UserService) UserLogin(email, password string) (accessToken string, refreshToken string, err error) {
 
 	user, err := r.repo.FindByEmail(email)
 	if err != nil {
-		return "", errors.New("email atau password salah")
+		return "", "", errors.New("email atau password salah")
 	}
 
 	// bandingkan dengan password
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", errors.New("email atau password salah")
+		return "", "", errors.New("email atau password salah")
 	}
 
 	// generate JWT TOKEN - return tokenstring, nil sama kyk ecommerce repo
@@ -55,7 +57,7 @@ func (r *UserService) UserLogin(email, password string) (string, error) {
 		"user_id":  user.ID,
 		"username": user.Username,
 		"role":     user.Role,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"exp":      time.Now().Add(time.Minute * 15).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -63,12 +65,32 @@ func (r *UserService) UserLogin(email, password string) (string, error) {
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 
 	if err != nil {
-		return "", errors.New("token gagal ter generate")
+		return "", "", errors.New("token gagal ter generate")
 	}
 
-	return tokenString, nil
+	refreshTokenString := uuid.New().String()
+
+	rt := &domain.RefreshToken{
+		UserID:    user.ID,
+		Token:     refreshTokenString,
+		ExpiresAt: time.Now().Add(time.Hour * 24 * 7),
+	}
+
+	if err := r.refreshTokenRepo.Create(rt); err != nil {
+		return "", "", errors.New("gagal menyimpan refresh token")
+	}
+
+	return tokenString, refreshTokenString, nil
 }
 
-func NewUserService(repo domain.UserRepository) domain.UserService {
-	return &UserService{repo: repo}
+func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken string, err error) {
+	return "", nil
+}
+
+func NewRefreshTokenRepository(repo domain.UserRepository, refreshTokenRepo domain.RefreshTokenRepository) domain.UserService {
+	return &UserService{repo: repo, refreshTokenRepo: refreshTokenRepo}
+}
+
+func NewUserService(repo domain.UserRepository, refreshTokenRepo domain.RefreshTokenRepository) domain.UserService {
+	return &UserService{repo: repo, refreshTokenRepo: refreshTokenRepo}
 }

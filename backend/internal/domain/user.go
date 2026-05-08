@@ -21,6 +21,19 @@ type LoginInput struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
+type RefreshToken struct {
+	ID        uint      `gorm:"primaryKey"`
+	UserID    uint      `gorm:"not null;index"`
+	Token     string    `gorm:"not null ;uniqueIndex"`
+	ExpiresAt time.Time `gorm:"not null"`
+	CreatedAt time.Time
+}
+
+type RefreshTokenRepository interface {
+	Create(token *RefreshToken) error
+	FindByToken(token string) (*RefreshToken, error)
+	DeleteByUserID(userID uint) error
+}
 
 type UserRepository interface {
 	FindByID(id uint) (*User, error)
@@ -31,5 +44,6 @@ type UserRepository interface {
 
 type UserService interface {
 	UserRegister(user *User) error
-	UserLogin(email, password string) (string, error)
+	UserLogin(email, password string) (accessToken string, refreshToken string, err error)
+	RefreshAccessToken(refreshToken string) (string, error)
 }

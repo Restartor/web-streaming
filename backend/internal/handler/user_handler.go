@@ -41,14 +41,14 @@ func (r *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := r.service.UserLogin(user.Email, user.Password)
+	accessToken, refreshToken, err := r.service.UserLogin(user.Email, user.Password)
 
 	if err != nil {
 		response.Error(c, http.StatusUnauthorized, "Wrong email or password, please try again")
 		return
 	}
 
-	response.Success(c, http.StatusOK, gin.H{"token": token})
+	response.Success(c, http.StatusOK, gin.H{"access_token": accessToken, "refresh_token": refreshToken})
 
 }
 

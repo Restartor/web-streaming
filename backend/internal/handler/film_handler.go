@@ -21,6 +21,12 @@ func (r *FilmHandler) GetAllFilms(c *gin.Context) {
 		query.Page = 1
 		query.Limit = 10
 	}
+	if query.Page < 1 {
+		query.Page = 1
+	}
+	if query.Limit < 1 || query.Limit > 20 {
+		query.Limit = 10
+	}
 
 	filems, err := r.service.GetAllFilms(query)
 

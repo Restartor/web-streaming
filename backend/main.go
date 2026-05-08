@@ -7,7 +7,12 @@ import (
 	"backend/internal/service"
 	"backend/pkg/logger"
 	"backend/routes"
+	"context"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -15,7 +20,6 @@ import (
 )
 
 func main() {
-
 	gin.SetMode(gin.ReleaseMode)
 
 	err := godotenv.Load()
@@ -29,10 +33,11 @@ func main() {
 	if os.Getenv("JWT_SECRET") == "" {
 		logger.Log.Fatal().Err(err).Msg("Jwt_secret belum di set!!")
 	}
-
 	// masukkan repo,handler,service untuk menggabungkan mereka bertiga
+
 	userRepository := repository.NewUserRepository(config.DB)
-	userService := service.NewUserService(userRepository)
+	refreshTokenRepository := repository.NewRefreshTokenRepository(config.DB)
+	userService := service.NewUserService(userRepository, refreshTokenRepository)
 	userHandler := handler.NewUserHandler(userService)
 
 	filmRepository := repository.NewFilmRepository(config.DB)
@@ -46,7 +51,6 @@ func main() {
 	historyRepository := repository.NewHistoryRepository(config.DB)
 	historyService := service.NewHistoryService(historyRepository)
 	historyHandler := handler.NewHistoryHandler(historyService)
-
 	// routes
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
@@ -63,5 +67,28 @@ func main() {
 
 	routes.SetupRoutes(router, userHandler, filmHandler, watchlistHandler, historyHandler)
 
-	router.Run(":1010")
+	srver := &http.Server{
+		Addr:    ":1010",
+		Handler: router,
+	}
+
+	go func() {
+		if err := srver.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Log.Fatal().Err(err).Msg("server error")
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	logger.Log.Info().Msg("shutting down server....")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srver.Shutdown(ctx); err != nil {
+		logger.Log.Fatal().Err(err).Msg("server forced to shutdown")
+	}
+	logger.Log.Info().Msg("server exited")
+
 }
