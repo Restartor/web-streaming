@@ -70,10 +70,12 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 
 	refreshTokenString := uuid.New().String()
 
+	loginduration, err := time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
+
 	rt := &domain.RefreshToken{
 		UserID:    user.ID,
 		Token:     refreshTokenString,
-		ExpiresAt: time.Now().Add(time.Hour * 24 * 7),
+		ExpiresAt: time.Now().Add(loginduration),
 	}
 
 	if err := r.refreshTokenRepo.Create(rt); err != nil {
@@ -101,11 +103,16 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 		return "", errors.New("user tidak ditemukan")
 	}
 
+	duration, err := time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
+	if err != nil {
+		return "", errors.New("invalid refresh token duration")
+	}
+
 	claims := jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
 		"role":     user.Role,
-		"exp":      time.Now().Add(time.Minute * 15).Unix(),
+		"exp":      time.Now().Add(duration).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
