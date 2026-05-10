@@ -33,6 +33,7 @@ func SetupRoutes(
 		userAuth.GET("/history", historyHandler.GetAllHistory)
 		userAuth.DELETE("/history/:id", middleware.RateLimiter("3-M"), historyHandler.DeleteHistoryOne)
 		userAuth.DELETE("/history", middleware.RateLimiter("3-M"), historyHandler.DeleteAllHistory)
+		userAuth.POST("/logout", middleware.RateLimiter("3-M"), userHandler.Logout)
 
 	}
 

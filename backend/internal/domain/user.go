@@ -46,4 +46,5 @@ type UserService interface {
 	UserRegister(user *User) error
 	UserLogin(email, password string) (accessToken string, refreshToken string, err error)
 	RefreshAccessToken(refreshToken string) (string, error)
+	UserLogout(userID uint) error
 }

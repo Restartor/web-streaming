@@ -68,6 +68,19 @@ func (r *UserHandler) RefreshToken(c *gin.Context) {
 	response.Success(c, http.StatusOK, gin.H{"access_token": accessToken})
 }
 
+func (r *UserHandler) Logout(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	if err := r.service.UserLogout(userID.(uint)); err != nil {
+		response.Error(c, http.StatusInternalServerError, "Failed to logout")
+		return
+	}
+	response.Success(c, http.StatusOK, gin.H{"message": "Successfully logged out"})
+}
+
 func NewUserHandler(service domain.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }

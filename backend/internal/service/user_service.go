@@ -71,6 +71,9 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 	refreshTokenString := uuid.New().String()
 
 	loginduration, err := time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
+	if err != nil {
+		loginduration = time.Minute * 15
+	}
 
 	rt := &domain.RefreshToken{
 		UserID:    user.ID,
@@ -105,7 +108,7 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 
 	duration, err := time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
 	if err != nil {
-		return "", errors.New("invalid refresh token duration")
+		duration = time.Hour * 24 * 7 // Default to 7 days if invalid
 	}
 
 	claims := jwt.MapClaims{
@@ -116,13 +119,17 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	tokenString, err := token.SignedString([]byte(os.Getenv("REFRESH_TOKEN_SECRET")))
 
 	if err != nil {
 		return "", errors.New("gagal generate token baru")
 	}
 
 	return tokenString, nil
+}
+
+func (r *UserService) UserLogout(userID uint) error {
+	return r.refreshTokenRepo.DeleteByUserID(userID)
 }
 
 func NewUserService(repo domain.UserRepository, refreshTokenRepo domain.RefreshTokenRepository) domain.UserService {
