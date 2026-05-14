@@ -30,9 +30,6 @@ func main() {
 	logger.Init()
 	config.DatabaseConnection()
 
-	if os.Getenv("JWT_SECRET") == "" {
-		logger.Log.Fatal().Err(err).Msg("Jwt_secret belum di set!!")
-	}
 	// masukkan repo,handler,service untuk menggabungkan mereka bertiga
 
 	userRepository := repository.NewUserRepository(config.DB)
@@ -67,8 +64,13 @@ func main() {
 
 	routes.SetupRoutes(router, userHandler, filmHandler, watchlistHandler, historyHandler)
 
+	osPort := os.Getenv("PORT")
+	if osPort == "" {
+		osPort = "1010"
+	}
+
 	srver := &http.Server{
-		Addr:    ":1010",
+		Addr:    ":" + osPort,
 		Handler: router,
 	}
 

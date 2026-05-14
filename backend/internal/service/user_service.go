@@ -2,6 +2,7 @@ package service
 
 import (
 	"backend/internal/domain"
+	"backend/pkg/logger"
 	"errors"
 	"os"
 	"time"
@@ -52,17 +53,25 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 	}
 
 	// generate JWT TOKEN - return tokenstring, nil sama kyk ecommerce repo
+	accessDuration, err := time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
+	if err != nil {
+		accessDuration = time.Minute * 15
+	}
 
 	claims := jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
 		"role":     user.Role,
-		"exp":      time.Now().Add(time.Minute * 15).Unix(),
+		"exp":      time.Now().Add(accessDuration).Unix(),
+	}
+
+	jwtsecret := os.Getenv("JWT_SECRET")
+	if jwtsecret == "" {
+		logger.Log.Fatal().Msg("jwt secret blm di set")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	tokenString, err := token.SignedString([]byte(jwtsecret))
 
 	if err != nil {
 		return "", "", errors.New("token gagal ter generate")
@@ -70,15 +79,15 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 
 	refreshTokenString := uuid.New().String()
 
-	loginduration, err := time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
+	refreshDuration, err := time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
 	if err != nil {
-		loginduration = time.Minute * 15
+		refreshDuration = time.Hour * 24 * 7
 	}
 
 	rt := &domain.RefreshToken{
 		UserID:    user.ID,
 		Token:     refreshTokenString,
-		ExpiresAt: time.Now().Add(loginduration),
+		ExpiresAt: time.Now().Add(refreshDuration),
 	}
 
 	if err := r.refreshTokenRepo.Create(rt); err != nil {
@@ -106,9 +115,9 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 		return "", errors.New("user tidak ditemukan")
 	}
 
-	duration, err := time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
+	duration, err := time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
 	if err != nil {
-		duration = time.Hour * 24 * 7 // Default to 7 days if invalid
+		duration = time.Minute * 15
 	}
 
 	claims := jwt.MapClaims{
@@ -118,8 +127,12 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 		"exp":      time.Now().Add(duration).Unix(),
 	}
 
+	jwtsecret := os.Getenv("JWT_SECRET")
+	if jwtsecret == "" {
+		logger.Log.Fatal().Msg("jwt secret blm di set")
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(os.Getenv("REFRESH_TOKEN_SECRET")))
+	tokenString, err := token.SignedString([]byte(jwtsecret))
 
 	if err != nil {
 		return "", errors.New("gagal generate token baru")
