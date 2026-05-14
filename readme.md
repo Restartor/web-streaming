@@ -1,109 +1,55 @@
-# Web Streaming (Backend)
+# Web Streaming Backend
+Backend API for a movie streaming platform built with Go, Gin, GORM, and PostgreSQL. The codebase is organized with a clean handler/service/repository split and includes JWT authentication, refresh tokens, rate limiting, and admin-only film management.
 
-Backend service for a movie streaming platform built with Go and PostgreSQL, designed using Clean Architecture principles with a clear separation between handler, service, and repository layers.
+## Tech Stack
 
-This project focuses on scalable backend development, authentication systems, middleware protection, and structured API design for media platform applications.
+- Go 1.25.0
+- Gin v1.12.0
+- GORM v1.31.1 with PostgreSQL driver v1.6.0
+- PostgreSQL with `lib/pq`
+- JWT auth with `golang-jwt/jwt`
+- Zerolog for structured logging
+- `ulule/limiter` for rate limiting
+- `godotenv` for local environment loading
+- `bcrypt` for password hashing
 
----
+## What It Does
 
-# Tech Stack
+- User registration, login, refresh token exchange, and logout
+- Public film catalog listing and title search
+- Admin-only film create, update, and delete operations
+- User watchlist management
+- User watch history retrieval and deletion
+- Standard JSON responses and centralized middleware protection
 
-- Go (module: `backend`, go 1.25.0)
-- Gin (github.com/gin-gonic/gin v1.12.0)
-- GORM with Postgres driver (gorm.io/gorm v1.31.1, gorm.io/driver/postgres v1.6.0)
-- PostgreSQL (github.com/lib/pq v1.12.3)
-- JWT (github.com/golang-jwt/jwt v3.2.2)
-- Zerolog (github.com/rs/zerolog v1.35.1)
-- Rate limiter (github.com/ulule/limiter/v3 v3.11.2)
-- UUID (github.com/google/uuid v1.6.0)
-- dotenv (github.com/joho/godotenv v1.5.1)
-- Crypto (golang.org/x/crypto v0.50.0)
-- REST API, Clean Architecture
-
----
-
-# Core Features
-
-## Authentication & Security
-
-- JWT authentication (access token + refresh token)
-- Role-based access control (RBAC)
-- Rate limiting middleware
-- CORS protection
-- Protected private routes
-- Input validation
-
-## Streaming Platform Features
-
-- User registration & login
-- Movie catalog management
-- Search movies
-- Watchlist system
-- Watch history tracking
-- Admin movie management
-
-## Backend Engineering
-
-- Clean Architecture implementation
-- Structured logging with Zerolog
-- Repository pattern
-- Consistent JSON response format
-- PostgreSQL integration with GORM
-- Middleware-based request protection
-
----
-
-# Architecture
-
-This project follows Clean Architecture principles to maintain scalability, separation of concerns, and maintainable business logic.
-
-```text
-Handler Layer
-↓
-Service Layer
-↓
-Repository Layer
-↓
-PostgreSQL Database
-```
-
-### Request Flow
+## Request Flow
 
 ```mermaid
 flowchart LR
-	A[Client / Frontend] --> B[Go Router /api/v1]
-	B --> C{Route Type}
+  Client[Client / Frontend] --> Router[Router /api/v1]
+  Router --> Public[Public routes]
+  Router --> Auth[Authenticated routes]
+  Router --> Admin[Authenticated + Admin routes]
 
-	C -->|Public| D[Rate Limiter]
-	C -->|Auth Required| E[Auth Middleware]
-	C -->|Admin Only| E
+  Public --> Rate[Rate limiter]
+  Auth --> AuthMW[JWT auth middleware]
+  Admin --> AuthMW
+  Admin --> AdminMW[Admin-only middleware]
 
-	D --> F[Handler]
-	E --> F[Handler]
+  Rate --> Handler[Handler]
+  AuthMW --> Handler
+  AdminMW --> Handler
 
-	F --> G[Service]
-	G --> H[Repository]
-	H --> I[(PostgreSQL via GORM)]
-
-	I --> H
-	H --> G
-	G --> F
-
-	F --> J[JSON Response]
-	J --> A
+  Handler --> Service[Service]
+  Service --> Repo[Repository]
+  Repo --> DB[(PostgreSQL via GORM)]
 ```
 
----
-
-# Project Structure
-
-File and folder layout (actual contents of `backend/`):
+## Project Structure
 
 ```text
 backend/
-├── .env
 ├── .env.example
-├── .gitignore
 ├── go.mod
 ├── go.sum
 ├── main.go
@@ -142,795 +88,88 @@ backend/
     └── routes.go
 ```
 
-## Layer Breakdown
+## Main Components
 
-### Domain Layer (`internal/domain/`)
+### Domain
 
-Core business entities and interfaces defining the application's data models and contracts:
+- `internal/domain/film.go` defines the film model, pagination types, watchlist/history models, and repository/service interfaces.
+- `internal/domain/user.go` defines the user model, registration/login inputs, refresh token model, and user auth interfaces.
 
-| File | Description |
-|---|---|
-| `film.go` | Film model, Film service interface, pagination models |
-| `user.go` | User model, auth models (LoginInput, RegisterInput), User service interface |
+### Handlers
 
-### Handler Layer (`internal/handler/`)
+- `user_handler.go` handles `/register`, `/login`, `/refresh-token`, and `/logout`.
+- `film_handler.go` handles `/films`, `/films/search`, and admin film CRUD.
+- `watchlist_handler.go` handles watchlist add/remove/list actions.
+- `watched_handler.go` handles watch history list/delete actions.
 
-HTTP request handlers that receive requests, validate input, call services, and return responses:
+### Middleware and Shared Utilities
 
-| Handler | Endpoints | Description |
-|---|---|---|
-| `user_handler.go` | `/register`, `/login`, `/refresh-token` | User authentication (registration, login, token refresh) |
-| `film_handler.go` | `/films`, `/films/search`, `/films/:id` (admin) | Film listing, search, and admin CRUD operations |
-| `watchlist_handler.go` | `/watchlist`, `/watchlist/:id` | User watchlist management (add, remove, get) |
-| `watched_handler.go` | `/history`, `/history/:id` | Watch history tracking (get, delete single, delete all) |
+- `pkg/middleware/auth.middleware.go` validates the bearer token and stores `user_id`, `username`, and `role` in request context.
+- `pkg/adminOnly.go` blocks non-admin users from film write operations.
+- `pkg/middleware/rate_limiter.go` applies per-route rate limits.
+- `pkg/response/response.go` standardizes JSON responses as `{ data, error }`.
+- `pkg/logger/logger.go` sets up Zerolog output to stdout.
 
-### Service Layer (`internal/service/`)
+## API Routes
 
-Business logic implementation containing use-case logic and data processing:
+All routes are mounted under `/api/v1`.
 
-| Service | Description |
-|---|---|
-| `user_service.go` | User registration, login, JWT token generation and validation, refresh token logic |
-| `film_service.go` | Film retrieval, pagination, search functionality |
-| `watchlist_service.go` | Add/remove films to/from watchlist, retrieve watchlist |
-| `watched_service.go` | Track watch history, retrieve history, delete history entries |
+### Public Routes
 
-### Repository Layer (`internal/repository/`)
+- `POST /register` - create a new user account
+- `POST /login` - exchange email/password for access and refresh tokens
+- `POST /refresh-token` - exchange a refresh token for a new access token
+- `GET /films` - list films with pagination via `page` and `limit`
+- `GET /films/search?title=...` - search films by title
 
-Database access layer implementing data persistence with GORM:
+### Authenticated Routes
 
-| Repository | Description |
-|---|---|
-| `user_repository.go` | CRUD operations for users (create, read, update) |
-| `film_repository.go` | CRUD operations for films with pagination and search |
-| `watchlist_repository.go` | Store and manage user watchlist entries |
-| `watched_repository.go` | Store and manage user watch history |
-| `refresh_token_repository.go` | Manage JWT refresh tokens |
+- `GET /watchlist` - fetch the current user's watchlist
+- `POST /watchlist` - add a film to the watchlist
+- `DELETE /watchlist/:id` - remove a film from the watchlist
+- `GET /history` - fetch the current user's watch history
+- `DELETE /history/:id` - remove one history entry
+- `DELETE /history` - clear the full history
+- `POST /logout` - revoke the current user's refresh tokens
 
-### Package Layer (`pkg/`)
+### Admin-Only Routes
 
-Utility packages and shared middleware:
+- `POST /films` - create a film
+- `PUT /films/:id` - update a film
+- `DELETE /films/:id` - delete a film
 
-| File | Description |
-|---|---|
-| `response/response.go` | Standardized JSON response wrapper (`{ data, error }`) for all endpoints |
-| `logger/logger.go` | Zerolog-based structured logging configuration |
-| `middleware/auth.middleware.go` | JWT authentication middleware for protected routes |
-| `middleware/rate_limiter.go` | Rate limiting middleware using ulule/limiter |
-| `adminOnly.go` | Middleware enforcing admin-only access control |
+## Environment Variables
 
-### Configuration & Routing
+Copy `backend/.env.example` to `backend/.env` and fill in these values:
 
-| File | Description |
-|---|---|
-| `main.go` | Application entry point, server initialization |
-| `config/database.go` | PostgreSQL database connection setup with GORM |
-| `routes/routes.go` | Route registration and middleware chain setup |
+- `DB_HOST`
+- `DB_PORT`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_NAME`
+- `DB_SSLMODE`
+- `ALLOWED_ORIGINS`
+- `JWT_SECRET`
+- `REFRESH_TOKEN_SECRET`
+- `ACCESS_TOKEN_DURATION`
+- `REFRESH_TOKEN_DURATION`
 
----
+## Run Locally
 
-# Quick Start
-
-Prerequisites:
-
-- Go 1.25 or newer installed
-- PostgreSQL database
-- Copy and edit environment file from `.env.example`
-
-Run locally:
+From the `backend/` directory:
 
 ```bash
-cp backend/.env.example backend/.env
-cd backend
 go mod download
-# Run directly
 go run main.go
-## or build and run executable
-go build -o web-streaming-backend .
-./web-streaming-backend
 ```
 
-# Middleware & Security
+The server listens on port `1010` and loads environment values from `.env` at startup.
 
-## Authentication Middleware (`pkg/middleware/auth.middleware.go`)
+## Notes
 
-Validates JWT access tokens on protected routes. Extracts and injects `user_id` into request context for downstream handlers.
-
-- **Location:** Protected routes in `/api/v1` (authenticated group)
-- **Token Header:** `Authorization: Bearer <access_token>`
-- **Token Type:** JWT (HS256)
-- **Claims:** User ID and role information
-- **Error:** Returns `401 Unauthorized` if token is missing, invalid, or expired
-
-## Rate Limiting Middleware (`pkg/middleware/rate_limiter.go`)
-
-Prevents abuse by limiting request frequency per IP address or user. Configured as `"<count>-<period>"` (e.g., `"5-M"` = 5 requests per minute).
-
-- **Public Endpoints:** Rate limits apply globally per IP
-- **Authenticated Endpoints:** Rate limits apply per user
-- **Admin Endpoints:** Rate limits apply per admin user
-- **Error:** Returns `429 Too Many Requests` when limit exceeded
-
-## Admin-Only Middleware (`pkg/adminOnly.go`)
-
-Enforces role-based access control on admin endpoints. Checks user role from JWT claims.
-
-- **Required Role:** `"admin"`
-- **Applied On:** Film creation, updates, and deletion endpoints
-- **Error:** Returns `403 Forbidden` if user is not admin
-
----
-
-# Environment Configuration
-
-## Required Environment Variables
-
-Create a `backend/.env` file based on `.env.example` with:
-
-```env
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=your_password
-DB_NAME=web_streaming
-
-# JWT
-JWT_SECRET=your_secret_key_here
-REFRESH_TOKEN_SECRET=your_refresh_secret_here
-ACCESS_TOKEN_DURATION=15m
-REFRESH_TOKEN_DURATION=7d
-
-# Server
-PORT=8080
-GIN_MODE=release  # or "debug" for development
-
-# CORS (optional)
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
-```
-
-## Starting the Application
-
-```bash
-cd backend
-
-# Set environment variables
-export GIN_MODE=debug  # or set in .env
-
-# Run
-go run main.go
-
-# Output:
-# [GIN-debug] Listening and serving HTTP on :8080
-```
-
----
-
-# Query Parameters
-
-## Films Pagination
-
-| Parameter | Type | Default | Max | Description |
-|-----------|------|---------|-----|-------------|
-| `page` | int | 1 | - | Page number (1-indexed) |
-| `limit` | int | 10 | 20 | Films per page |
-
-**Example:**
-```
-GET /api/v1/films?page=2&limit=15
-```
-
-## Films Search
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `title` | string | yes | Film title to search (partial matching) |
-
-**Example:**
-```
-GET /api/v1/films/search?title=Inception
-```
-
----
-
-## Authentication
-
-All authenticated endpoints require a valid JWT access token in the `Authorization` header:
-
-```
-Authorization: Bearer <access_token>
-```
-
-Tokens are obtained from `/login` and can be refreshed using `/refresh-token`.
-
-## Public Endpoints
-
-| Method | Endpoint | Description | Rate Limit |
-|--------|----------|-------------|------------|
-| `POST` | `/api/v1/register` | Register new user | 5/min |
-| `POST` | `/api/v1/login` | Login user, receive tokens | 10/min |
-| `POST` | `/api/v1/refresh-token` | Refresh access token | 10/min |
-| `GET` | `/api/v1/films` | Get paginated film list | - |
-| `GET` | `/api/v1/films/search?title=...` | Search films by title | - |
-
-## Authenticated Endpoints
-
-Require valid JWT access token. Rate limited per user.
-
-| Method | Endpoint | Description | Rate Limit |
-|--------|----------|-------------|------------|
-| `GET` | `/api/v1/watchlist` | Get user's watchlist | - |
-| `POST` | `/api/v1/watchlist` | Add film to watchlist | 5/min |
-| `DELETE` | `/api/v1/watchlist/:id` | Remove film from watchlist | 3/min |
-| `GET` | `/api/v1/history` | Get user's watch history | - |
-| `DELETE` | `/api/v1/history/:id` | Delete specific history entry | 3/min |
-| `DELETE` | `/api/v1/history` | Delete all user history | 3/min |
-
-## Admin Endpoints
-
-Require valid JWT access token **AND** admin role. Enforced by `adminOnly` middleware.
-
-| Method | Endpoint | Description | Rate Limit |
-|--------|----------|-------------|------------|
-| `POST` | `/api/v1/films` | Create new film | 5/min |
-| `PUT` | `/api/v1/films/:id` | Update existing film | 3/min |
-| `DELETE` | `/api/v1/films/:id` | Delete film | 3/min |
-
-# Example Requests & Responses
-
-The project uses a consistent response wrapper `{ "data": ..., "error": ... }` located in `pkg/response/response.go`.
-
-## Register User
-
-**Request:**
-```bash
-POST /api/v1/register
-Content-Type: application/json
-
-{
-  "username": "john_doe",
-  "email": "john@example.com",
-  "password": "securepassword123"
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "data": {
-    "message": "Berhasil Register!"
-  },
-  "error": null
-}
-```
-
-## Login User
-
-**Request:**
-```bash
-POST /api/v1/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "securepassword123"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  },
-  "error": null
-}
-```
-
-## Refresh Access Token
-
-**Request:**
-```bash
-POST /api/v1/refresh-token
-Content-Type: application/json
-
-{
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  },
-  "error": null
-}
-```
-
-## Get Films (Paginated)
-
-**Request:**
-```bash
-GET /api/v1/films?page=1&limit=10
-```
-
-**Response (200 OK):**
-```json
-{
-  "data": {
-    "films": [
-      {
-        "ID": 1,
-        "Title": "Inception",
-        "Description": "A skilled thief who steals corporate secrets...",
-        "Genre": ["Sci-Fi", "Thriller"],
-        "Year": 2010,
-        "PosterURL": "https://cdn.example.com/inception.jpg",
-        "Rating": 8.8,
-        "VideoURL": "https://cdn.example.com/inception.mp4"
-      }
-    ],
-    "total": 150,
-    "page": 1,
-    "limit": 10
-  },
-  "error": null
-}
-```
-
-## Search Films
-
-**Request:**
-```bash
-GET /api/v1/films/search?title=Inception
-```
-
-**Response (200 OK):**
-```json
-{
-  "data": {
-    "films": [
-      {
-        "ID": 1,
-        "Title": "Inception",
-        "Description": "A skilled thief who steals corporate secrets...",
-        "Genre": ["Sci-Fi", "Thriller"],
-        "Year": 2010,
-        "PosterURL": "https://cdn.example.com/inception.jpg",
-        "Rating": 8.8,
-        "VideoURL": "https://cdn.example.com/inception.mp4"
-      }
-    ]
-  },
-  "error": null
-}
-```
-
-## Add to Watchlist (Authenticated)
-
-**Request:**
-```bash
-POST /api/v1/watchlist
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "film_id": 1
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "data": "film successfully added to watchlist",
-  "error": null
-}
-```
-
-## Get User Watchlist (Authenticated)
-
-**Request:**
-```bash
-GET /api/v1/watchlist
-Authorization: Bearer <access_token>
-```
-
-**Response (200 OK):**
-```json
-{
-  "data": {
-    "watchlist": [
-      {
-        "ID": 1,
-        "Title": "Inception",
-        "Description": "A skilled thief...",
-        "Genre": ["Sci-Fi", "Thriller"],
-        "Year": 2010,
-        "PosterURL": "https://cdn.example.com/inception.jpg",
-        "Rating": 8.8,
-        "VideoURL": "https://cdn.example.com/inception.mp4"
-      }
-    ]
-  },
-  "error": null
-}
-```
-
-## Get Watch History (Authenticated)
-
-**Request:**
-```bash
-GET /api/v1/history
-Authorization: Bearer <access_token>
-```
-
-**Response (200 OK):**
-```json
-{
-  "data": {
-    "history": [
-      {
-        "FilmID": 1,
-        "UserID": 5,
-        "LastWatchedAt": "2026-05-09T14:30:00Z"
-      }
-    ]
-  },
-  "error": null
-}
-```
-
-## Error Response
-
-**Example (401 Unauthorized):**
-```json
-{
-  "data": null,
-  "error": "Wrong email or password, please try again"
-}
-```
-
-**Example (403 Forbidden - Admin Only):**
-```json
-{
-  "data": null,
-  "error": "unauthorized access"
-}
-```
-
-
-# Database Design
-
-## Database Schema
-
-### USER Table
-
-Stores user account information with role-based access control.
-
-```sql
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  username VARCHAR(255) UNIQUE NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  role VARCHAR(50) DEFAULT 'user',  -- 'user' or 'admin'
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### FILM Table
-
-Stores film/movie metadata.
-
-```sql
-CREATE TABLE films (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  description TEXT,
-  genre TEXT[],  -- PostgreSQL array type
-  year INTEGER,
-  poster_url VARCHAR(500),
-  rating DECIMAL(3, 1),
-  video_url VARCHAR(500),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### USER_WATCHLIST Table
-
-Stores films added to user's watchlist (many-to-many).
-
-```sql
-CREATE TABLE user_watchlists (
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  film_id INTEGER NOT NULL REFERENCES films(id) ON DELETE CASCADE,
-  PRIMARY KEY (user_id, film_id),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### USER_HISTORY Table
-
-Stores user's watch history with timestamps.
-
-```sql
-CREATE TABLE watched_histories (
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  film_id INTEGER NOT NULL REFERENCES films(id) ON DELETE CASCADE,
-  last_watched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (user_id, film_id)
-);
-```
-
-### REFRESH_TOKEN Table
-
-Stores refresh tokens for session management.
-
-```sql
-CREATE TABLE refresh_tokens (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  token VARCHAR(500) NOT NULL UNIQUE,
-  expires_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-## Entity Relationship Diagram
-
-```mermaid
-erDiagram
-	USER {
-		uint ID PK
-		string Username
-		string Email
-		string Password
-		string Role
-		timestamp CreatedAt
-	}
-
-	FILM {
-		uint ID PK
-		string Title
-		string Description
-		text[] Genre
-		int Year
-		string PosterURL
-		decimal Rating
-		string VideoURL
-		timestamp CreatedAt
-	}
-
-	REFRESH_TOKEN {
-		uint ID PK
-		uint UserID FK
-		string Token
-		timestamp ExpiresAt
-		timestamp CreatedAt
-	}
-
-	USER_WATCHLIST {
-		uint UserID PK "FK"
-		uint FilmID PK "FK"
-		timestamp CreatedAt
-	}
-
-	USER_HISTORY {
-		uint UserID PK "FK"
-		uint FilmID PK "FK"
-		timestamp LastWatchedAt
-	}
-
-	USER ||--o{ REFRESH_TOKEN : issues
-	USER ||--o{ USER_WATCHLIST : manages
-	FILM ||--o{ USER_WATCHLIST : "appears in"
-	USER ||--o{ USER_HISTORY : tracks
-	FILM ||--o{ USER_HISTORY : "watched by"
-```
-
-## Relationships
-
-- **1:N** USER → REFRESH_TOKEN (one user has many tokens)
-- **M:N** USER → FILM (via USER_WATCHLIST, one user can add many films, one film can be in many watchlists)
-- **M:N** USER → FILM (via USER_HISTORY, one user watches many films, one film is watched by many users)
-
----
-
-# Domain Models
-
-## User Model
-
-```go
-type User struct {
-  ID        uint      `json:"id" gorm:"primaryKey"`
-  Username  string    `json:"username" gorm:"uniqueIndex"`
-  Email     string    `json:"email" gorm:"uniqueIndex"`
-  Password  string    `json:"-"`  // Never exposed in response
-  Role      string    `json:"role" gorm:"default:user"` // "user" or "admin"
-  CreatedAt time.Time `json:"created_at"`
-}
-
-// Auth Inputs
-type LoginInput struct {
-  Email    string `json:"email" binding:"required,email"`
-  Password string `json:"password" binding:"required,min=6"`
-}
-
-type RegisterInput struct {
-  Username string `json:"username" binding:"required,min=3"`
-  Email    string `json:"email" binding:"required,email"`
-  Password string `json:"password" binding:"required,min=6"`
-}
-```
-
-## Film Model
-
-```go
-type Film struct {
-  ID        uint      `json:"id" gorm:"primaryKey"`
-  Title     string    `json:"title" binding:"required"`
-  Description string  `json:"description"`
-  Genre     pq.StringArray `json:"genre" gorm:"type:text[]"`
-  Year      int       `json:"year"`
-  PosterURL string    `json:"poster_url"`
-  Rating    float64   `json:"rating"`
-  VideoURL  string    `json:"video_url"`
-  CreatedAt time.Time `json:"created_at"`
-}
-```
-
-## Watchlist Model
-
-```go
-type UserWatchList struct {
-  UserID uint `json:"user_id" binding:"required"`
-  FilmID uint `json:"film_id" binding:"required"`
-  CreatedAt time.Time `json:"created_at"`
-}
-```
-
-## Watch History Model
-
-```go
-type UserWatched struct {
-  UserID      uint      `json:"user_id"`
-  FilmID      uint      `json:"film_id"`
-  LastWatchedAt time.Time `json:"last_watched_at"`
-}
-```
-
----
-
-# HTTP Status Codes & Error Handling
-
-The API returns appropriate HTTP status codes with error messages:
-
-| Status Code | Description | Example Scenarios |
-|---|---|---|
-| `200 OK` | Request successful | Login, fetch data, update successful |
-| `201 Created` | Resource created | User registered, film created |
-| `400 Bad Request` | Invalid input data | Missing fields, malformed JSON |
-| `401 Unauthorized` | Missing or invalid auth | Missing token, expired token |
-| `403 Forbidden` | Insufficient permissions | Non-admin accessing admin route |
-| `429 Too Many Requests` | Rate limit exceeded | Too many login attempts |
-| `500 Internal Server Error` | Server error | Database error, unexpected exception |
-
-## Common Error Responses
-
-**Invalid Credentials (401):**
-```json
-{
-  "data": null,
-  "error": "Wrong email or password, please try again"
-}
-```
-
-**Rate Limit Exceeded (429):**
-```json
-{
-  "data": null,
-  "error": "Too many requests, please try again later"
-}
-```
-
-**Admin Access Required (403):**
-```json
-{
-  "data": null,
-  "error": "unauthorized access"
-}
-```
-
-**Invalid Input (400):**
-```json
-{
-  "data": null,
-  "error": "create input not valid"
-}
-```
-
----
-
-# Development Guide
-
-## Adding a New Endpoint
-
-### 1. Define Domain Model
-Create or update model in `internal/domain/<entity>.go`:
-
-```go
-type MyModel struct {
-  ID    uint
-  Name  string
-  // ... fields
-}
-```
-
-### 2. Create Repository
-Add methods in `internal/repository/<entity>_repository.go`:
-
-```go
-func (r *MyRepository) Create(model *domain.MyModel) error {
-  return r.db.Create(model).Error
-}
-```
-
-### 3. Create Service
-Business logic in `internal/service/<entity>_service.go`:
-
-```go
-func (s *MyService) CreateItem(model *domain.MyModel) error {
-  // Validation, processing
-  return s.repo.Create(model)
-}
-```
-
-### 4. Create Handler
-HTTP handler in `internal/handler/<entity>_handler.go`:
-
-```go
-func (h *MyHandler) Create(c *gin.Context) {
-  var input domain.MyModel
-  if err := c.ShouldBindJSON(&input); err != nil {
-    response.Error(c, http.StatusBadRequest, "Invalid input")
-    return
-  }
-  
-  if err := h.service.CreateItem(&input); err != nil {
-    response.Error(c, http.StatusInternalServerError, "Failed to create")
-    return
-  }
-  
-  response.Success(c, http.StatusCreated, gin.H{"message": "Created"})
-}
-```
-
-### 5. Register Route
-Add in `routes/routes.go`:
-
-```go
-protected.POST("/myitems", middleware.RateLimiter("5-M"), handler.Create)
-```
-
----
-
-# Troubleshooting
-
-## Common Issues
-
-### Database Connection Error
-
-**Error:** `failed to connect to postgres database`
-
-**Solution:**
-- Verify PostgreSQL is running
-- Check `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` in `.env`
-- Ensure database exists and user has permissions
-
-```bash
+- The database connection runs AutoMigrate on startup for the user, film, watchlist, history, and refresh-token tables.
+- CORS headers are set in `main.go` using the `ALLOWED_ORIGINS` environment variable.
+- Access tokens are signed with `JWT_SECRET`, while refreshed access tokens use `REFRESH_TOKEN_SECRET`.
 # Test connection
 psql -h localhost -U postgres -d web_streaming
 ```
