@@ -19,7 +19,8 @@ func DatabaseConnection() {
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
 		os.Getenv("DB_PORT"),
-		os.Getenv("DB_SSLMODE"))
+		os.Getenv("DB_SSLMODE"),
+	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
