@@ -12,6 +12,13 @@ type WatchlistRepository struct {
 
 func (r *WatchlistRepository) UserAddWatchlist(userID uint, filmID uint) error {
 
+	// buat jadi errornya itu ketika film yang ingin ditambahkan ke watchlist tidak ada di database, karena database sudah diisi dengan data film, jadi ketika ingin menambahkan ke watchlist, maka harus memastikan bahwa film yang ingin ditambahkan ke watchlist sudah ada di database, jika belum ada di database, maka akan error, karena database tidak bisa menemukan data film yang ingin ditambahkan ke watchlist, jadi pastikan bahwa film yang ingin ditambahkan ke watchlist sudah ada di database, jika belum ada di database, maka tambahkan data filmnya terlebih dahulu ke database, baru kemudian tambahkan ke watchlist
+	var film domain.Filem
+
+	err := r.db.First(&film, filmID).Error
+	if err != nil {
+		return err
+	}
 	watchlist := domain.UserWatchList{UserID: userID, FilmID: filmID}
 	return r.db.Create(&watchlist).Error
 
