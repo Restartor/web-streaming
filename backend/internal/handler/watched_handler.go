@@ -65,6 +65,27 @@ func (r *HistoryHandler) DeleteAllHistory(c *gin.Context) {
 
 }
 
+func (r *HistoryHandler) RecordWatch(c *gin.Context) {
+	var input struct {
+		FilmID uint `json:"film_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.Error(c, http.StatusBadRequest, "invalid input")
+		return
+	}
+
+	val, _ := c.Get("user_id")
+	userID := val.(uint) // penjelasan singkatnya userID itu uint, jadi kita type assertion ke uint
+
+	if err := r.service.RecordWatch(userID, input.FilmID); err != nil {
+		response.Error(c, http.StatusInternalServerError, "failed to record watch")
+		return
+	}
+
+	response.Success(c, http.StatusOK, gin.H{"message": "watch recorded successfully"})
+}
+
 func NewHistoryHandler(service domain.HistoryService) *HistoryHandler {
 	return &HistoryHandler{service: service}
 }

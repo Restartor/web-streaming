@@ -27,10 +27,11 @@ func SetupRoutes(
 	userAuth := routes.Group("/api/v1")
 	userAuth.Use(middleware.AuthMiddleware())
 	{
-		userAuth.GET("/watchlist", watchedHandler.GetWatchlist)
+		userAuth.GET("/watchlist", middleware.RateLimiter("10-M"), watchedHandler.GetWatchlist)
 		userAuth.DELETE("/watchlist/:id", middleware.RateLimiter("3-M"), watchedHandler.RemoveFromWatchlist)
 		userAuth.POST("/watchlist", middleware.RateLimiter("5-M"), watchedHandler.AddToWatchlist)
-		userAuth.GET("/history", historyHandler.GetAllHistory)
+		userAuth.GET("/history", middleware.RateLimiter("10-M"), historyHandler.GetAllHistory)
+		userAuth.POST("/history/:id", middleware.RateLimiter("10-M"), historyHandler.RecordWatch)
 		userAuth.DELETE("/history/:id", middleware.RateLimiter("3-M"), historyHandler.DeleteHistoryOne)
 		userAuth.DELETE("/history", middleware.RateLimiter("3-M"), historyHandler.DeleteAllHistory)
 		userAuth.POST("/logout", middleware.RateLimiter("3-M"), userHandler.Logout)

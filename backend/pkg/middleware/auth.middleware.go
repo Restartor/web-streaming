@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"backend/pkg/response"
 	"net/http"
 	"os"
 	"strings"
@@ -16,7 +17,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header tidak ada!"})
+			response.Error(c, http.StatusUnauthorized, "Authorization header tidak ada!")
 			c.Abort()
 			return
 		}
@@ -24,7 +25,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := strings.Split(authHeader, " ")
 
 		if len(tokenString) != 2 {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "format token salah/error"})
+			response.Error(c, http.StatusUnauthorized, "format token salah/error")
 			c.Abort()
 			return
 		}
@@ -37,7 +38,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "token invalid"})
+			response.Error(c, http.StatusUnauthorized, "token not valid")
 			c.Abort()
 			return
 		}

@@ -77,6 +77,7 @@ func (r *FilmHandler) UpdateFilm(c *gin.Context) {
 
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "error getting parameters")
+		return
 	}
 
 	if err := c.ShouldBindJSON(&filem); err != nil {

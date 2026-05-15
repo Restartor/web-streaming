@@ -22,12 +22,12 @@ import (
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 
+	logger.Init()
 	err := godotenv.Load()
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("Gagal mendapatkan env")
 	}
 
-	logger.Init()
 	config.DatabaseConnection()
 
 	// masukkan repo,handler,service untuk menggabungkan mereka bertiga
