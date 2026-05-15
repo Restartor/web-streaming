@@ -97,22 +97,22 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 	return tokenString, refreshTokenString, nil
 }
 
-func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken string, err error) {
+func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken string, newRefreshToken string, err error) {
 
 	rt, err := r.refreshTokenRepo.FindByToken(refreshToken)
 
 	if err != nil {
-		return "", errors.New("refresh token is not valid")
+		return "", "", errors.New("refresh token is not valid")
 	}
 
 	if time.Now().After(rt.ExpiresAt) {
-		return "", errors.New("refresh token expire")
+		return "", "", errors.New("refresh token expire")
 	}
 
 	user, err := r.repo.FindByID(rt.UserID)
 
 	if err != nil {
-		return "", errors.New("user tidak ditemukan")
+		return "", "", errors.New("user tidak ditemukan")
 	}
 
 	duration, err := time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
@@ -135,10 +135,27 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 	tokenString, err := token.SignedString([]byte(jwtsecret))
 
 	if err != nil {
-		return "", errors.New("gagal generate token baru")
+		return "", "", errors.New("gagal generate token baru")
+	}
+	// rotate refresh token
+	if err := r.refreshTokenRepo.DeleteByUserID(rt.UserID); err != nil {
+		return "", "", errors.New("gagal rotate refresh token")
 	}
 
-	return tokenString, nil
+	refreshDuration, err := time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
+	if err != nil {
+		refreshDuration = time.Hour * 24 * 7
+	}
+	newRT := &domain.RefreshToken{
+		UserID:    user.ID,
+		Token:     uuid.New().String(),
+		ExpiresAt: time.Now().Add(refreshDuration),
+	}
+	if err := r.refreshTokenRepo.Create(newRT); err != nil {
+		return "", "", errors.New("gagal simpan refresh token baru")
+	}
+
+	return tokenString, newRT.Token, nil
 }
 
 func (r *UserService) UserLogout(userID uint) error {

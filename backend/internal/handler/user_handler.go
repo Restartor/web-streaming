@@ -60,12 +60,12 @@ func (r *UserHandler) RefreshToken(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "invalid input refresh token")
 		return
 	}
-	accessToken, err := r.service.RefreshAccessToken(input.RefreshToken)
+	accessToken, newRefreshToken, err := r.service.RefreshAccessToken(input.RefreshToken)
 	if err != nil {
 		response.Error(c, http.StatusUnauthorized, "invalid refresh token")
 		return
 	}
-	response.Success(c, http.StatusOK, gin.H{"access_token": accessToken})
+	response.Success(c, http.StatusOK, gin.H{"access_token": accessToken, "refresh_token": newRefreshToken})
 }
 
 func (r *UserHandler) Logout(c *gin.Context) {
