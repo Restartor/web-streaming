@@ -35,6 +35,10 @@ func (r *RefreshTokenRepository) DeleteByUserID(userID uint) error {
 	return r.db.Where("user_id = ?", userID).Delete(&domain.RefreshToken{}).Error
 }
 
+func (r *RefreshTokenRepository) DeleteByToken(token string) error {
+	return r.db.Where("token = ?", token).Delete(&domain.RefreshToken{}).Error
+}
+
 // NewRefreshTokenRepository membuat instance baru dari RefreshTokenRepository.
 // Menghubungkan interface domain.RefreshTokenRepository dengan implementasi database konkretnya.
 // Ini memungkinkan UserService untuk mengelola refresh token sambil mengabstraksi layer database.

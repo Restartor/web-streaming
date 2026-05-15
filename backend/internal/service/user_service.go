@@ -138,7 +138,7 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 		return "", "", errors.New("gagal generate token baru")
 	}
 	// rotate refresh token
-	if err := r.refreshTokenRepo.DeleteByUserID(rt.UserID); err != nil {
+	if err := r.refreshTokenRepo.DeleteByToken(refreshToken); err != nil {
 		return "", "", errors.New("gagal rotate refresh token")
 	}
 

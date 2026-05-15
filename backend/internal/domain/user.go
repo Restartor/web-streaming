@@ -33,6 +33,7 @@ type RefreshTokenRepository interface {
 	Create(token *RefreshToken) error
 	FindByToken(token string) (*RefreshToken, error)
 	DeleteByUserID(userID uint) error
+	DeleteByToken(token string) error
 }
 
 type UserRepository interface {
