@@ -12,12 +12,12 @@ import (
 
 func RateLimiter(rateStr string) gin.HandlerFunc {
 	rate, err := limiter.NewRateFromFormatted(rateStr)
-	store := memory.NewStore()
-	instance := limiter.New(store, rate)
-
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("rate limiter config error")
 	}
+
+	storing := memory.NewStore()
+	instance := limiter.New(storing, rate)
 
 	return mgin.NewMiddleware(instance)
 }
