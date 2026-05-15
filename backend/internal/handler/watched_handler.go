@@ -69,16 +69,28 @@ func (r *HistoryHandler) RecordWatch(c *gin.Context) {
 	var input struct {
 		FilmID uint `json:"film_id" binding:"required"`
 	}
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "invalid film id")
+		return
+	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Error(c, http.StatusBadRequest, "invalid input")
 		return
 	}
 
-	val, _ := c.Get("user_id")
-	userID := val.(uint) // penjelasan singkatnya userID itu uint, jadi kita type assertion ke uint
+	val, exists := c.Get("user_id")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "user not authenticated")
+		return
+	}
 
-	if err := r.service.RecordWatch(userID, input.FilmID); err != nil {
+	userID := val.(uint) // penjelasan singkatnya userID itu uint, jadi kita type assertion ke uint
+	filmID := uint(id)
+
+	if err := r.service.RecordWatch(userID, filmID); err != nil {
 		response.Error(c, http.StatusInternalServerError, "failed to record watch")
 		return
 	}

@@ -33,8 +33,8 @@ type UserHistory struct {
 }
 
 type UserWatchList struct {
-	UserID uint `gorm:"primaryKey; not null"`
-	FilmID uint `gorm:"not null"`
+	UserID uint `gorm:"primaryKey; not null;index"`
+	FilmID uint `gorm:"primaryKey;not null;index"`
 }
 
 type FilmRepository interface {
