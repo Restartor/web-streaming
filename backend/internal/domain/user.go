@@ -11,16 +11,6 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type RegisterInput struct {
-	Username string `json:"username" binding:"required,min=3,max=20"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
-}
-
-type LoginInput struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
-}
 type RefreshToken struct {
 	ID        uint      `gorm:"primaryKey"`
 	UserID    uint      `gorm:"not null;index"`

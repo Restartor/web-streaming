@@ -2,6 +2,7 @@ package handler
 
 import (
 	"backend/internal/domain"
+	"backend/internal/dto"
 	"backend/pkg/response"
 	"net/http"
 
@@ -13,7 +14,7 @@ type UserHandler struct {
 }
 
 func (r *UserHandler) Register(c *gin.Context) {
-	var input domain.RegisterInput
+	var input dto.RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Error(c, http.StatusBadRequest, "Register input Invalid")
 		return
@@ -34,7 +35,7 @@ func (r *UserHandler) Register(c *gin.Context) {
 }
 
 func (r *UserHandler) Login(c *gin.Context) {
-	var user domain.LoginInput
+	var user dto.LoginInput
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		response.Error(c, http.StatusBadRequest, "Invalid Input Data")
@@ -48,27 +49,36 @@ func (r *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, gin.H{"access_token": accessToken, "refresh_token": refreshToken})
+	c.SetSameSite(http.SameSiteStrictMode)
+	c.SetCookie("access_token", accessToken, 900, "/", "", true, true)
+	c.SetCookie("refresh_token", refreshToken, 604800, "/", "", true, true)
 
+	response.Success(c, http.StatusOK, gin.H{"message": "Login successful"})
 }
 
 func (r *UserHandler) RefreshToken(c *gin.Context) {
-	var input struct {
-		RefreshToken string `json:"refresh_token" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&input); err != nil {
-		response.Error(c, http.StatusBadRequest, "invalid input refresh token")
+	// ambil refresh token dari cookie
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "refresh token not found")
 		return
 	}
-	accessToken, newRefreshToken, err := r.service.RefreshAccessToken(input.RefreshToken)
+
+	accessToken, newRefreshToken, err := r.service.RefreshAccessToken(refreshToken)
 	if err != nil {
 		response.Error(c, http.StatusUnauthorized, "invalid refresh token")
 		return
 	}
-	response.Success(c, http.StatusOK, gin.H{"access_token": accessToken, "refresh_token": newRefreshToken})
+
+	c.SetSameSite(http.SameSiteStrictMode)
+	c.SetCookie("access_token", accessToken, 900, "/", "", true, true)
+	c.SetCookie("refresh_token", newRefreshToken, 604800, "/", "", true, true)
+
+	response.Success(c, http.StatusOK, gin.H{"message": "Token refreshed successfully"})
 }
 
 func (r *UserHandler) Logout(c *gin.Context) {
+
 	userID, exists := c.Get("user_id")
 	if !exists {
 		response.Error(c, http.StatusUnauthorized, "Unauthorized")
@@ -78,6 +88,10 @@ func (r *UserHandler) Logout(c *gin.Context) {
 		response.Error(c, http.StatusInternalServerError, "Failed to logout")
 		return
 	}
+	c.SetSameSite(http.SameSiteStrictMode)
+	c.SetCookie("access_token", "", -1, "/", "", true, true)
+	c.SetCookie("refresh_token", "", -1, "/", "", true, true)
+
 	response.Success(c, http.StatusOK, gin.H{"message": "Successfully logged out"})
 }
 

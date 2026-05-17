@@ -2,6 +2,7 @@ package repository
 
 import (
 	"backend/internal/domain"
+	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -21,22 +22,55 @@ func (r *HistoryRepository) UserSeeHistory(userID uint) ([]domain.UserHistory, e
 }
 
 func (r *HistoryRepository) UserDeleteHistoryID(userID uint, filmID uint) error {
-	return r.db.Where("user_id = ? AND film_id = ?", userID, filmID).Delete(&domain.UserHistory{}).Error
+
+	adaFilm := r.db.Where("user_id = ? AND film_id = ?", userID, filmID).Delete(&domain.UserHistory{})
+
+	if adaFilm.Error != nil {
+		return adaFilm.Error
+	}
+	if adaFilm.RowsAffected == 0 {
+		return errors.New("film not found in history")
+	}
+
+	return nil
 }
 func (r *HistoryRepository) UserDeleteEveryHistory(userID uint) error {
-	return r.db.Where("user_id = ?", userID).Delete(&domain.UserHistory{}).Error
+
+	adaFilm := r.db.Where("user_id = ?", userID).Delete(&domain.UserHistory{})
+	if adaFilm.Error != nil {
+		return adaFilm.Error
+	}
+	if adaFilm.RowsAffected == 0 {
+		return errors.New("history not found")
+	}
+	return nil
 }
 
 func (r *HistoryRepository) UserRecordWatch(userID uint, filmID uint) error {
+
+	var film domain.Filem
+
+	err := r.db.First(&film, filmID).Error
+	if err != nil {
+		return err
+	}
+
 	record := domain.UserHistory{
 		UserID:        userID,
 		FilmID:        filmID,
 		LastWatchedAt: time.Now(),
 	}
-	return r.db.Clauses(clause.OnConflict{
+
+	dapathistory := r.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "user_id"}, {Name: "film_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"last_watched_at"}),
-	}).Create(&record).Error
+	}).Create(&record)
+
+	if dapathistory.Error != nil {
+		return dapathistory.Error
+	}
+
+	return nil
 	// penjelasan kode di atas adalah: fungsi UserRecordWatch menerima tiga parameter: userID, filmID, dan waktu
 	// saat ini (time.Now()). Fungsi ini membuat sebuah record baru dalam tabel UserHistory
 	// dengan nilai userID, filmID, dan lastWatchedAt yang diatur ke waktu saat ini.

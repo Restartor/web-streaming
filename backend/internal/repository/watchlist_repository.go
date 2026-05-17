@@ -2,6 +2,7 @@ package repository
 
 import (
 	"backend/internal/domain"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -25,7 +26,17 @@ func (r *WatchlistRepository) UserAddWatchlist(userID uint, filmID uint) error {
 }
 
 func (r *WatchlistRepository) RemoveFromWatchlist(userID uint, filmID uint) error {
-	return r.db.Where("user_id = ? AND film_id = ?", userID, filmID).Delete(&domain.UserWatchList{}).Error
+
+	adaFilm := r.db.Where("user_id = ? AND film_id = ?", userID, filmID).Delete(&domain.UserWatchList{})
+
+	if adaFilm.Error != nil {
+		return adaFilm.Error
+	}
+	if adaFilm.RowsAffected == 0 {
+		return errors.New("film not found in watchlist")
+	}
+
+	return nil
 }
 
 func (r *WatchlistRepository) GetWatchlist(userID uint) ([]domain.UserWatchList, error) {

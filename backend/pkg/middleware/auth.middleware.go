@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -15,18 +14,9 @@ func AuthMiddleware() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		// take token from header auth
-		authHeader := c.GetHeader("Authorization")
-
-		if authHeader == "" {
+		authHeader, err := c.Cookie("access_token")
+		if err != nil {
 			response.Error(c, http.StatusUnauthorized, "Authorization header tidak ada!")
-			c.Abort()
-			return
-		}
-		// format : bearer <token>, harus split bearer
-		tokenString := strings.Split(authHeader, " ")
-
-		if len(tokenString) != 2 {
-			response.Error(c, http.StatusUnauthorized, "format token salah/error")
 			c.Abort()
 			return
 		}
@@ -34,7 +24,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// cek apakah sudah logout
 
 		// parsing jwt.parse
-		token, err := jwt.Parse(tokenString[1], func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(authHeader, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}

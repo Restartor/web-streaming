@@ -2,6 +2,7 @@ package repository
 
 import (
 	"backend/internal/domain"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -40,7 +41,25 @@ func (r *FilmRepository) Create(filem *domain.Filem) error {
 }
 
 func (r *FilmRepository) Update(filem *domain.Filem) error {
-	return r.db.Save(filem).Error
+
+	saved := r.db.Model(&domain.Filem{}).Where("id = ?", filem.ID).Updates(map[string]interface{}{
+		"title":       filem.Title,
+		"description": filem.Description,
+		"genre":       filem.Genre,
+		"year":        filem.Year,
+		"poster_url":  filem.PosterURL,
+		"rating":      filem.Rating,
+		"video_url":   filem.VideoURL,
+	})
+
+	if saved.Error != nil {
+		return saved.Error
+	}
+	if saved.RowsAffected == 0 {
+		return errors.New("film not found")
+	}
+
+	return nil
 }
 
 func (r *FilmRepository) Delete(id uint) error {

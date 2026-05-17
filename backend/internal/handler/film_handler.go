@@ -2,6 +2,7 @@ package handler
 
 import (
 	"backend/internal/domain"
+	"backend/internal/dto"
 	"backend/pkg/response"
 	"net/http"
 	"strconv"
@@ -53,11 +54,21 @@ func (r *FilmHandler) GetFilmByTitle(c *gin.Context) {
 }
 
 func (r *FilmHandler) CreateFilm(c *gin.Context) {
-	var filem domain.Filem
 
-	if err := c.ShouldBindJSON(&filem); err != nil {
+	var createinput dto.CreateFilmInput
+	if err := c.ShouldBindJSON(&createinput); err != nil {
 		response.Error(c, http.StatusBadRequest, "create input not valid")
 		return
+	}
+
+	filem := domain.Filem{
+		Title:       createinput.Title,
+		Description: createinput.Description,
+		Genre:       createinput.Genre,
+		Year:        createinput.Year,
+		PosterURL:   createinput.PosterURL,
+		Rating:      createinput.Rating,
+		VideoURL:    createinput.VideoURL,
 	}
 
 	if err := r.service.CreateFilm(&filem); err != nil {
@@ -70,22 +81,32 @@ func (r *FilmHandler) CreateFilm(c *gin.Context) {
 
 func (r *FilmHandler) UpdateFilm(c *gin.Context) {
 
-	var filem domain.Filem
+	var updateinput dto.UpdateFilmInput
+
+	if err := c.ShouldBindJSON(&updateinput); err != nil {
+		response.Error(c, http.StatusBadRequest, "update input not valid")
+		return
+	}
+	filem := domain.Filem{
+		Title:       updateinput.Title,
+		Description: updateinput.Description,
+		Genre:       updateinput.Genre,
+		Year:        updateinput.Year,
+		PosterURL:   updateinput.PosterURL,
+		Rating:      updateinput.Rating,
+		VideoURL:    updateinput.VideoURL,
+	}
 
 	id, err := strconv.Atoi(c.Param("id")) // ambil parameter id dari URL dan konversi ke integer
-	filem.ID = uint(id)
-
+	// karena id di database itu uint, jadi kita harus mengkonversi id yang sudah diambil dari URL ke uint
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "error getting parameters")
 		return
 	}
+	filem.ID = uint(id)
 
-	if err := c.ShouldBindJSON(&filem); err != nil {
-		response.Error(c, http.StatusBadRequest, "input not valid")
-		return
-	}
 	if err := r.service.UpdateFilm(&filem); err != nil {
-		response.Error(c, http.StatusBadRequest, "error updating films")
+		response.Error(c, http.StatusBadRequest, "error updating films please try again")
 		return
 	}
 	response.Success(c, http.StatusOK, gin.H{"message": "Film Updated Successfully!"})

@@ -21,7 +21,10 @@ func (r *HistoryService) DeleteAllHistory(userID uint) error {
 }
 
 func (r *HistoryService) RecordWatch(userID uint, filmID uint) error {
-	return r.repo.UserRecordWatch(userID, filmID)
+	if err := r.repo.UserRecordWatch(userID, filmID); err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewHistoryService(repo domain.HistoryRepository) domain.HistoryService {
