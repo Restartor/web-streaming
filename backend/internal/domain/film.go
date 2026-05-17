@@ -40,6 +40,7 @@ type UserWatchList struct {
 type FilmRepository interface {
 	FindAll(query PaginationQuery) (PaginatedFilms, error)
 	FindByTitle(title string) ([]Filem, error)
+	FindByID(id uint) (*Filem, error)
 	Create(filem *Filem) error
 	Update(filem *Filem) error
 	Delete(id uint) error

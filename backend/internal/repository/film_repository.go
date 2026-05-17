@@ -36,6 +36,16 @@ func (r *FilmRepository) FindByTitle(title string) ([]domain.Filem, error) {
 	return filems, err
 }
 
+func (r *FilmRepository) FindByID(id uint) (*domain.Filem, error) {
+	var filem domain.Filem
+
+	err := r.db.Where("id = ?", id).First(&filem).Error
+	if err != nil {
+		return nil, err
+	}
+	return &filem, err
+}
+
 func (r *FilmRepository) Create(filem *domain.Filem) error {
 	return r.db.Create(filem).Error
 }
@@ -63,7 +73,16 @@ func (r *FilmRepository) Update(filem *domain.Filem) error {
 }
 
 func (r *FilmRepository) Delete(id uint) error {
-	return r.db.Delete(&domain.Filem{}, id).Error
+
+	hapus := r.db.Where("id = ?", id).Delete(&domain.Filem{})
+	if hapus.Error != nil {
+		return hapus.Error
+	}
+	if hapus.RowsAffected == 0 {
+		return errors.New("film not found")
+	}
+
+	return nil
 }
 
 func NewFilmRepository(db *gorm.DB) domain.FilmRepository {

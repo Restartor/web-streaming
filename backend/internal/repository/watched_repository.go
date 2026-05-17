@@ -48,13 +48,6 @@ func (r *HistoryRepository) UserDeleteEveryHistory(userID uint) error {
 
 func (r *HistoryRepository) UserRecordWatch(userID uint, filmID uint) error {
 
-	var film domain.Filem
-
-	err := r.db.First(&film, filmID).Error
-	if err != nil {
-		return err
-	}
-
 	record := domain.UserHistory{
 		UserID:        userID,
 		FilmID:        filmID,

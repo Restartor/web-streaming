@@ -32,6 +32,7 @@ func main() {
 
 	// masukkan repo,handler,service untuk menggabungkan mereka bertiga
 	appConfig := config.LoadAppConfig()
+
 	userRepository := repository.NewUserRepository(config.DB)
 	refreshTokenRepository := repository.NewRefreshTokenRepository(config.DB)
 	userService := service.NewUserService(userRepository, refreshTokenRepository, appConfig)
@@ -42,11 +43,11 @@ func main() {
 	filmHandler := handler.NewFilmHandler(filmService)
 
 	watchlistRepository := repository.NewWatchlistRepository(config.DB)
-	watchlistService := service.NewWatchlistService(watchlistRepository)
+	watchlistService := service.NewWatchlistService(watchlistRepository, filmRepository)
 	watchlistHandler := handler.NewWatchlistHandler(watchlistService)
 
 	historyRepository := repository.NewHistoryRepository(config.DB)
-	historyService := service.NewHistoryService(historyRepository)
+	historyService := service.NewHistoryService(historyRepository, filmRepository)
 	historyHandler := handler.NewHistoryHandler(historyService)
 	// routes
 	router := gin.Default()
@@ -62,7 +63,7 @@ func main() {
 		c.Next()
 	})
 
-	routes.SetupRoutes(router, userHandler, filmHandler, watchlistHandler, historyHandler)
+	routes.SetupRoutes(router, userHandler, filmHandler, watchlistHandler, historyHandler, appConfig)
 
 	osPort := os.Getenv("PORT")
 	if osPort == "" {

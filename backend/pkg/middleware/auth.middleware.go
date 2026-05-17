@@ -1,16 +1,16 @@
 package middleware
 
 import (
+	"backend/config"
 	"backend/pkg/response"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(cfg config.AppConfig) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		// take token from header auth
@@ -29,7 +29,7 @@ func AuthMiddleware() gin.HandlerFunc {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 
-			return []byte(os.Getenv("JWT_SECRET")), nil
+			return []byte(cfg.JWTSecret), nil
 		})
 
 		if err != nil || !token.Valid {

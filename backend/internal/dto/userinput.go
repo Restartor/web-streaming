@@ -10,3 +10,7 @@ type LoginInput struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
+
+type WatchlistInput struct {
+	FilmID uint `json:"film_id" binding:"required"`
+}

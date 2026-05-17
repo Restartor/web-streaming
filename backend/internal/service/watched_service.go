@@ -2,10 +2,12 @@ package service
 
 import (
 	"backend/internal/domain"
+	"errors"
 )
 
 type HistoryService struct {
-	repo domain.HistoryRepository
+	repo     domain.HistoryRepository
+	filmRepo domain.FilmRepository
 }
 
 func (r *HistoryService) GetAllHistory(userID uint) ([]domain.UserHistory, error) {
@@ -21,14 +23,19 @@ func (r *HistoryService) DeleteAllHistory(userID uint) error {
 }
 
 func (r *HistoryService) RecordWatch(userID uint, filmID uint) error {
+
+	if _, err := r.filmRepo.FindByID(filmID); err != nil {
+		return errors.New("film not found")
+	}
+
 	if err := r.repo.UserRecordWatch(userID, filmID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func NewHistoryService(repo domain.HistoryRepository) domain.HistoryService {
-	return &HistoryService{repo: repo}
+func NewHistoryService(repo domain.HistoryRepository, filmRepo domain.FilmRepository) domain.HistoryService {
+	return &HistoryService{repo: repo, filmRepo: filmRepo}
 }
 
 // finished

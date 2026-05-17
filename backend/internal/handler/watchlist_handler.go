@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"backend/internal/dto"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,15 +17,14 @@ type WatchlistHandler struct {
 
 func (r *WatchlistHandler) AddToWatchlist(c *gin.Context) {
 
-	var watchlist domain.UserWatchList
-
-	if err := c.ShouldBindJSON(&watchlist); err != nil {
-		response.Error(c, http.StatusBadRequest, "invalid, please try again")
+	var input dto.WatchlistInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.Error(c, http.StatusBadRequest, "invalid input, please try again")
 		return
 	}
 
 	userID, _ := c.Get("user_id")
-	if err := r.service.AddToWatchlist(userID.(uint), watchlist.FilmID); err != nil {
+	if err := r.service.AddToWatchlist(userID.(uint), input.FilmID); err != nil {
 		response.Error(c, http.StatusBadRequest, "error adding to watchlist, please try again")
 		return
 	}

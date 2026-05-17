@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"backend/config"
 	"backend/internal/handler"
 	"backend/pkg"
 	"backend/pkg/middleware"
@@ -14,6 +15,7 @@ func SetupRoutes(
 	filmHandler *handler.FilmHandler,
 	watchedHandler *handler.WatchlistHandler,
 	historyHandler *handler.HistoryHandler,
+	cfg config.AppConfig,
 ) {
 	user := routes.Group("/api/v1")
 	{
@@ -25,7 +27,7 @@ func SetupRoutes(
 	}
 
 	userAuth := routes.Group("/api/v1")
-	userAuth.Use(middleware.AuthMiddleware())
+	userAuth.Use(middleware.AuthMiddleware(cfg))
 	{
 		userAuth.GET("/watchlist", middleware.RateLimiter("10-M"), watchedHandler.GetWatchlist)
 		userAuth.DELETE("/watchlist/:id", middleware.RateLimiter("3-M"), watchedHandler.RemoveFromWatchlist)
@@ -39,7 +41,7 @@ func SetupRoutes(
 	}
 
 	protected := routes.Group("/api/v1")
-	protected.Use(middleware.AuthMiddleware(), pkg.AdminOnly())
+	protected.Use(middleware.AuthMiddleware(cfg), pkg.AdminOnly())
 	{
 		protected.POST("/films", middleware.RateLimiter("5-M"), filmHandler.CreateFilm)
 		protected.PUT("/films/:id", middleware.RateLimiter("3-M"), filmHandler.UpdateFilm)

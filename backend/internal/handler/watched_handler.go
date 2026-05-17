@@ -66,18 +66,11 @@ func (r *HistoryHandler) DeleteAllHistory(c *gin.Context) {
 }
 
 func (r *HistoryHandler) RecordWatch(c *gin.Context) {
-	var input struct {
-		FilmID uint `json:"film_id" binding:"required"`
-	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "invalid film id")
-		return
-	}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		response.Error(c, http.StatusBadRequest, "invalid input")
 		return
 	}
 
