@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: web-streaming-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-web_streaming}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - web-streaming-network
+
+  # Backend API
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: web-streaming-api
+    environment:
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-web_streaming}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
+      
+      # JWT & Auth
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-prod}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-dev-refresh-secret-change-in-prod}
+      ACCESS_TOKEN_DURATION: ${ACCESS_TOKEN_DURATION:-15m}
+      REFRESH_TOKEN_DURATION: ${REFRESH_TOKEN_DURATION:-168h}
+      
+      # CORS
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      
+      # Server
+      PORT: ${PORT:-1010}
+      GIN_MODE: ${GIN_MODE:-debug}
+    ports:
+      - "${PORT:-1010}:1010"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:1010/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - web-streaming-network
+    volumes:
+      - ./backend:/app  # Hot reload for development
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # pgAdmin (Database UI - optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: web-streaming-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - web-streaming-network
+    profiles: ["dev"]  # Only run with: docker-compose --profile dev up
+
+networks:
+  web-streaming-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
