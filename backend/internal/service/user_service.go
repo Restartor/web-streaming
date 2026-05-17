@@ -71,7 +71,7 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(jwtsecret))
+	tokenString, err := token.SignedString((jwtsecret))
 
 	if err != nil {
 		return "", "", errors.New("token gagal ter generate")
@@ -79,7 +79,7 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 
 	refreshTokenString := uuid.New().String()
 
-	refreshDuration, err := time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
+	refreshDuration, err := time.ParseDuration(os.Getenv("JWT_SECRET"))
 	if err != nil {
 		refreshDuration = time.Hour * 24 * 7
 	}
