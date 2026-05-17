@@ -31,10 +31,10 @@ func main() {
 	config.DatabaseConnection()
 
 	// masukkan repo,handler,service untuk menggabungkan mereka bertiga
-
+	appConfig := config.LoadAppConfig()
 	userRepository := repository.NewUserRepository(config.DB)
 	refreshTokenRepository := repository.NewRefreshTokenRepository(config.DB)
-	userService := service.NewUserService(userRepository, refreshTokenRepository)
+	userService := service.NewUserService(userRepository, refreshTokenRepository, appConfig)
 	userHandler := handler.NewUserHandler(userService)
 
 	filmRepository := repository.NewFilmRepository(config.DB)

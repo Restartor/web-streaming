@@ -1,10 +1,10 @@
 package service
 
 import (
+	"backend/config"
 	"backend/internal/domain"
 	"backend/pkg/logger"
 	"errors"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -15,6 +15,7 @@ import (
 type UserService struct {
 	repo             domain.UserRepository // db hanya diketahui pas userRepository
 	refreshTokenRepo domain.RefreshTokenRepository
+	cfg              config.AppConfig
 }
 
 func (r *UserService) UserRegister(user *domain.User) error {
@@ -53,10 +54,7 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 	}
 
 	// generate JWT TOKEN - return tokenstring, nil sama kyk ecommerce repo
-	accessDuration, err := time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
-	if err != nil {
-		accessDuration = time.Minute * 15
-	}
+	accessDuration := r.cfg.AccessTokenDuration
 
 	claims := jwt.MapClaims{
 		"user_id":  user.ID,
@@ -65,10 +63,7 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 		"exp":      time.Now().Add(accessDuration).Unix(),
 	}
 
-	jwtsecret := os.Getenv("JWT_SECRET")
-	if jwtsecret == "" {
-		logger.Log.Fatal().Msg("jwt secret blm di set")
-	}
+	jwtsecret := r.cfg.JWTSecret
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString((jwtsecret))
@@ -79,10 +74,7 @@ func (r *UserService) UserLogin(email, password string) (accessToken string, ref
 
 	refreshTokenString := uuid.New().String()
 
-	refreshDuration, err := time.ParseDuration(os.Getenv("JWT_SECRET"))
-	if err != nil {
-		refreshDuration = time.Hour * 24 * 7
-	}
+	refreshDuration := r.cfg.RefreshTokenDuration
 
 	rt := &domain.RefreshToken{
 		UserID:    user.ID,
@@ -110,15 +102,11 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 	}
 
 	user, err := r.repo.FindByID(rt.UserID)
-
 	if err != nil {
 		return "", "", errors.New("user tidak ditemukan")
 	}
 
-	duration, err := time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
-	if err != nil {
-		duration = time.Minute * 15
-	}
+	duration := r.cfg.AccessTokenDuration
 
 	claims := jwt.MapClaims{
 		"user_id":  user.ID,
@@ -127,7 +115,7 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 		"exp":      time.Now().Add(duration).Unix(),
 	}
 
-	jwtsecret := os.Getenv("JWT_SECRET")
+	jwtsecret := r.cfg.JWTSecret
 	if jwtsecret == "" {
 		logger.Log.Fatal().Msg("jwt secret blm di set")
 	}
@@ -142,10 +130,8 @@ func (r *UserService) RefreshAccessToken(refreshToken string) (accessToken strin
 		return "", "", errors.New("gagal rotate refresh token")
 	}
 
-	refreshDuration, err := time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
-	if err != nil {
-		refreshDuration = time.Hour * 24 * 7
-	}
+	refreshDuration := r.cfg.RefreshTokenDuration
+
 	newRT := &domain.RefreshToken{
 		UserID:    user.ID,
 		Token:     uuid.New().String(),
@@ -162,6 +148,6 @@ func (r *UserService) UserLogout(userID uint) error {
 	return r.refreshTokenRepo.DeleteByUserID(userID)
 }
 
-func NewUserService(repo domain.UserRepository, refreshTokenRepo domain.RefreshTokenRepository) domain.UserService {
-	return &UserService{repo: repo, refreshTokenRepo: refreshTokenRepo}
+func NewUserService(repo domain.UserRepository, refreshTokenRepo domain.RefreshTokenRepository, cfg config.AppConfig) domain.UserService {
+	return &UserService{repo: repo, refreshTokenRepo: refreshTokenRepo, cfg: cfg}
 }
